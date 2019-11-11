@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>Directed acyclic graphs (DAGs)</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="王　超辰 | Chaochen Wang" />
+    <script src="libs/kePrint-0.0.1/kePrint.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Directed acyclic graphs (DAGs)
+### 王　超辰 | Chaochen Wang
+### 2019-12-13(tentative) 17:00~18:00 <span class="citation">@CSS</span>
+
+---
+
+
+
+class: middle
+# Objectives
+
+- Introduction of Propensity Score Analysis (PSA).  
+
+- Understand the **pre-assumptions** that required for PSA
+
+- Discuss the ways of using Propensity Scores. 
+
+- Understand that PSA is not **omnipotent**
+
+???
+
+
+
+---
+class: middle, center, inverse
+
+## Some Terminology before PSA
+
+
+---
+class: middle
+
+## What do me mean by "causal inference"? (1)
+
+
+- Most data analysis in medical research (or in other area) has a central aim - to learn about **cause-effect relationships**. 
+
+    - Does the treatment work? 
+    - How harmful is the exposure? 
+    - How effective would the policy be and why?
+    
+    
+---
+class: middle
+
+## What do me mean by "causal inference"? (2)
+
+- Randomised studies are **randomised** precisely to make causal inference more reliable. 
+
+- When randomisation is not feasible, we still wish to make inferences about effects of causes. 
+
+- However, most medical studies can only be interpreted as "associations" rather than causal effect. 
+
+
+---
+class: middle
+
+## Example
+
+
+Anaemic patients undergoing hip replacement operation might benefit from receiving an **intravenous iron supplement** prior to surgery. 
+
+- Data collected in one hospital on all anaemic patients undergoing a hip replacement operation between 2009 and 2014. 
+
+- **X**:  **intravenous iron supplement**, yes or no
+- **Y**: 90 days survival after operation, alive or dead
+
+---
+class: middle 
+
+### Other data collected in the example: 
+
+- Age, gender, co-morbidities (CVD, diabetes, renal disease);
+
+- Severity of anaemia 
+
+- Operation types
+
+- Whether or not transfusion needed during operation
+
+- Length of stay in hospital
+
+---
+class: middle
+
+## Traditional Approach - crude 
+
+- We start by looking at a 2 `\(\times\)` 2 table:
+
+
+&lt;table class="table table-striped table-hover table-condensed" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+&lt;tr&gt;
+&lt;th style="border-bottom:hidden" colspan="2"&gt;&lt;/th&gt;
+&lt;th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"&gt;&lt;div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; "&gt;Death90&lt;/div&gt;&lt;/th&gt;
+&lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;"&gt;  &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt;  &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; 0 &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; 1 &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;font-weight: bold;vertical-align: middle !important;" rowspan="2"&gt; FeIV &lt;/td&gt;
+   &lt;td style="text-align:center;font-weight: bold;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 9206 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 376 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   
+   &lt;td style="text-align:center;font-weight: bold;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 7365 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 312 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+- Estimated log odds ratio `\(= \log(\frac{312\times9206}{376\times7365}) = 0.04, 95\% \text{CI: } -0.12, 0.19\)` 
+
+---
+class: middle
+## Traditional Approach - crude 
+
+- What are we estimating here? The **estimand**&lt;sup&gt;1&lt;/sup&gt; is 
+
+$$
+`\begin{aligned}
+\log\text{OR}_{Y|X} &amp; = \log{\frac{\text{Pr}(Y = 1 | X = 1)}{1- \text{Pr}(Y = 1 | X = 1)}} \\
+                    &amp; \;\;\;\;\;\;\;\;\; - \log{\frac{\text{Pr}(Y = 1 | X = 0)}{1- \text{Pr}(Y = 1 | X = 0)}}
+\end{aligned}`
+$$
+
+.footnote[
+[1] **Estimand** is defined as the value that we we would like to know, such as "the mean BMI of the population in Japan". This is an unknown but fixed quantity.
+]
+
+---
+class: middle
+
+## Confounding
+
+- We cannot give `\(\log\text{OR}_{Y|X}\)` a causal interpretation because there is confounding. 
+- It is possible that patients provided with intravenous iron were already worse off, masking a truely effect of the exposure. 
+- So we change the estimand into conditional logOR: 
+
+
+$$
+`\begin{aligned}
+\log\text{OR}_{Y|X} &amp; = \log{\frac{\text{Pr}(Y = 1 | X = 1, \textbf{C})}{1- \text{Pr}(Y = 1 | X = 1, \textbf{C})}} \\
+                    &amp; \;\;\;\;\;\;\;\;\; - \log{\frac{\text{Pr}(Y = 1 | X = 0, \textbf{C})}{1- \text{Pr}(Y = 1 | X = 0, \textbf{C})}}
+\end{aligned}`
+$$
+
+---
+class: middle
+
+## Conditionging on covariates
+
+
+- So we have some statistical variable selection procedure. 
+
+- Transfution, and length of stay in hospital are on the causal pathway from X to Y
+
+- After adjustment, we have an estimated conditional logOR of -0.24 (95% CI -0.41, -0.07)
+
+
+---
+class: middle
+
+## But, the conditional logOR cannot answer our question: 
+
+
+--
+# What is the survival probability if, 
+
+--
+# **contrary to reality**, 
+
+--
+# every patient were treated with intravenous iron?
+
+
+---
+class: middle
+
+## Causal languages
+
+1. We ask the question: how `\(Y\)` would react if we could change `\(X\)` and assign it, **contrary to how it was accually assigned.** &lt;br&gt; -- potential outcomes &lt;br&gt;(Neyman, 1923; Rubin, D. 1974)
+
+2. `\(Y(x)\)` is defined as the value that `\(Y\)` would take if `\(X\)` were (hypothetically) set to value of `\(x\)`
+
+3. Causal effect is expressed as comparisons between `\(Y(x)\)`: &lt;br&gt; `\(E\{Y(1)\} - E\{Y(0)\}\)`
+
+
+---
+class: middle
+
+## Causal Estimands for a binary outcome
+
+$$
+\text{Pr}[Y(1) = 1] - \text{Pr}[Y(0) = 1]
+$$
+
+Or,
+
+$$
+\log\frac{\text{Pr}(Y(1) = 1, \textbf{C})}{1- \text{Pr}(Y(1) = 1,  \textbf{C})} - \log\frac{\text{Pr}(Y(0) = 1, \textbf{C})}{1- \text{Pr}(Y(0) = 1,  \textbf{C})}
+$$
+
+---
+class: middle
+
+## Assumption No 1: **no interference**
+
+- Potential value of `\(Y_i\)`, does not depend on `\(X_j\)`: 
+
+    - `\(i, j\)`, are individual indices `\(\approx\)` independent
+
+    - we assume that a (hypothetical) exposure for individual `\(j\)`, does not change the outcome of individual `\(i\)`
+
+
+- An example of violation is in the study of vaccines, where vaccinating individual `\(j\)` may affect the disease status of individual `\(i\)`.
+
+
+---
+class: middle
+
+## Assumption No 2: **Consistency**
+
+$$
+X_i = x \Rightarrow Y_i = Y_i(x)
+$$
+
+- For individual `\(i\)`, who actually (in the real world) received exposure `\(x\)`, their observed outcome is the same as in the hypothetical world that this individual received the same exposure `\(x\)`. 
+
+
+---
+class: middle, center 
+
+# The end
+
+## slide address: https://wangcc.me/DAG-CSS
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"highlightSpans": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function(time) {
+  var d2 = function(number) {
+    return ('0' + number).slice(-2); // left-pad 0 to minutes/seconds
+  },
+
+  time_format = function(total) {
+    var secs = Math.abs(total) / 1000;
+    var h = Math.floor(secs / 3600);
+    var m = Math.floor(secs % 3600 / 60);
+    var s = Math.round(secs % 60);
+    var res = d2(m) + ':' + d2(s);
+    if (h > 0) res = h + ':' + res;
+    return res;  // [hh:]mm:ss
+  },
+
+  slide_number_div = function(i) {
+    return document.getElementsByClassName('remark-slide-number').item(i);
+  },
+
+  current_page_number = function(i) {
+    return slide_number_div(i).firstChild.textContent;  // text "i / N"
+  };
+
+  var timer = document.createElement('span'); timer.id = 'slide-time-left';
+  var time_left = time, k = slideshow.getCurrentSlideIndex(),
+      last_page_number = current_page_number(k);
+
+  setInterval(function() {
+    time_left = time_left - 1000;
+    timer.innerHTML = ' ' + time_format(time_left);
+    if (time_left < 0) timer.style.color = 'red';
+  }, 1000);
+
+  slide_number_div(k).appendChild(timer);
+
+  slideshow.on('showSlide', function(slide) {
+    var i = slide.getSlideIndex(), n = current_page_number(i);
+    // reset timer when a new slide is shown and the page number is changed
+    if (last_page_number !== n) {
+      time_left = time; last_page_number = n;
+      timer.innerHTML = ' ' + time_format(time); timer.style.color = null;
+    }
+    slide_number_div(i).appendChild(timer);
+  });
+})(60000);
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
