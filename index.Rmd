@@ -1,5 +1,5 @@
 ---
-title: "Directed acyclic graphs (DAGs)"
+title: "Propensity Score Analysis (PSA)"
 # subtitle: "why we use it and what does it provide"
 author: "王　超辰 | Chaochen Wang"
 date: "2019-12-13(tentative) 17:00~18:00 @CSS"
@@ -19,9 +19,11 @@ output:
 class: middle
 # Objectives
 
+- Revision about causal inference framework and terminologies.
+
 - Introduction of Propensity Score Analysis (PSA).  
 
-- Understand the **pre-assumptions** that required for PSA
+- Understand the **pre-assumptions** that required for PSA.
 
 - Discuss the ways of using Propensity Scores. 
 
@@ -34,13 +36,13 @@ class: middle
 ---
 class: middle, center, inverse
 
-## Some Terminology before PSA
+## Some background before PSA
 
 
 ---
 class: middle
 
-## What do me mean by "causal inference"? (1)
+## What do me mean by <br>"causal inference"? (1)
 
 
 - Most data analysis in medical research (or in other area) has a central aim - to learn about **cause-effect relationships**. 
@@ -53,13 +55,13 @@ class: middle
 ---
 class: middle
 
-## What do me mean by "causal inference"? (2)
+## What do me mean by <br>"causal inference"? (2)
 
 - Randomised studies are **randomised** precisely to make causal inference more reliable. 
 
 - When randomisation is not feasible, we still wish to make inferences about effects of causes. 
 
-- However, most medical studies can only be interpreted as "associations" rather than causal effect. 
+- However, most medical studies can only be interpreted as *"associations"* rather than causal effect. 
 
 
 ---
@@ -72,8 +74,8 @@ Anaemic patients undergoing hip replacement operation might benefit from receivi
 
 - Data collected in one hospital on all anaemic patients undergoing a hip replacement operation between 2009 and 2014. 
 
-- **X**:  **intravenous iron supplement**, yes or no
-- **Y**: 90 days survival after operation, alive or dead
+- $X$:  **intravenous iron supplement**, yes or no
+- $Y$: 90 days survival after operation, alive or dead
 
 ---
 class: middle 
@@ -82,13 +84,13 @@ class: middle
 
 - Age, gender, co-morbidities (CVD, diabetes, renal disease);
 
-- Severity of anaemia 
+- Severity of anaemia;
 
-- Operation types
+- Operation types;
 
-- Whether or not transfusion needed during operation
+- Whether or not transfusion needed during operation;
 
-- Length of stay in hospital
+- Length of stay in hospital;
 
 ---
 class: middle
@@ -159,20 +161,23 @@ $$
 ---
 class: middle
 
-## Conditionging on covariates
+## Conditioning on covariates
 
 
 - So we have some statistical variable selection procedure. 
 
-- Transfution, and length of stay in hospital are on the causal pathway from X to Y
+- Transfusion, and length of stay in hospital are on the causal pathway from $X$ to $Y$
 
-- After adjustment, we have an estimated conditional logOR of -0.24 (95% CI -0.41, -0.07)
+- After adjustment, we have an estimated conditional logOR of <br> -0.24 (95% CI -0.41, -0.07)
 
+???
+
+WE may interpret this logOR as evidence that patients treated with iron supplement before hip replacement surgery had lower odds of dying wihtin 90 days of operation.
 
 ---
 class: middle
 
-## But, the conditional logOR cannot answer our question: 
+## But, the conditional logOR still cannot answer our question: 
 
 
 --
@@ -200,13 +205,29 @@ class: middle
 ---
 class: middle
 
-## Causal Estimands for a binary outcome
+## Potential Causal Estimands - cont. outcome
+
+- Marginal causal mean difference: 
+
+$$E\{Y(1) - Y(0)\}$$
+- Conditional causal mean difference:
+
+$$E\{Y(1) - Y(0)|\mathbf{C}\}$$
+
+They are called the **Average Causal/Treatment Effect (ACE or ATE)**. 
+
+---
+class: middle
+
+## Potential Causal Estimands - binary outcome
+
+- Marginal causal risk difference:
 
 $$
 \text{Pr}[Y(1) = 1] - \text{Pr}[Y(0) = 1]
 $$
 
-Or,
+- Conditional causal log odds ratio:
 
 $$
 \log\frac{\text{Pr}(Y(1) = 1, \textbf{C})}{1- \text{Pr}(Y(1) = 1,  \textbf{C})} - \log\frac{\text{Pr}(Y(0) = 1, \textbf{C})}{1- \text{Pr}(Y(0) = 1,  \textbf{C})}
@@ -244,7 +265,7 @@ class: middle
 
 ## Assuption No 3: <br>**Conditional exchangeability**
 
-- This means we are 100% sure that there is **no other unmeasured confounding**.
+- This means we are so *arrogant* and 100% sure that there is **no other unmeasured confounding**.
 
 
 $$Y(x)\perp \!\!\! \perp X| \textbf{C}, \forall x$$
@@ -255,9 +276,13 @@ $$Y(x)\perp \!\!\! \perp X| \textbf{C}, \forall x$$
 - $\forall$ means "for all", here means $x = 0, 1$
 
 
+???
+
+Conditional on $\mathbf{C}$, the actual exposure level $X$ is independent of the level of the potential outcomes.
+
 ---
 class: middle, center 
 
 # The end
 
-## slide address: https://wangcc.me/DAG-CSS
+## slide address: https://wangcc.me/PSA-CSS
