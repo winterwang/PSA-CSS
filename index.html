@@ -30,7 +30,7 @@ class: middle
 
 - Discuss the ways of using Propensity Scores. 
 
-- Understand that PSA is not **omnipotent**
+- Understand that PSA is **not omnipotent**
 
 ???
 
@@ -157,9 +157,9 @@ class: middle
 
 ## Confounding
 
-- We cannot give `\(\log\text{OR}_{Y|X}\)` a causal interpretation because there is confounding. 
+- We cannot give `\(\log\text{OR}_{Y|X}\)` a causal interpretation because there is **confounding**. 
 - It is possible that patients provided with intravenous iron were already worse off, masking a truely effect of the exposure. 
-- So we change the estimand into conditional logOR: 
+- So the estimand changed into a **conditional logOR**: 
 
 
 $$
@@ -177,9 +177,9 @@ class: middle
 
 - So we have some statistical variable selection procedure. 
 
-- Transfusion, and length of stay in hospital are on the causal pathway from `\(X\)` to `\(Y\)`
+- Transfusion, and length of stay in hospital are on the causal pathway from `\(X\)` to `\(Y\)`, so they were excluded from adjustment
 
-- After adjustment, we have an estimated conditional logOR of &lt;br&gt; -0.24 (95% CI -0.41, -0.07)
+- After adjustment of the other covariates, we have an estimated conditional logOR of &lt;br&gt; -0.24 (95% CI -0.41, -0.07)
 
 ???
 
@@ -216,20 +216,6 @@ class: middle
 ---
 class: middle
 
-## Potential Causal Estimands - cont. outcome
-
-- Marginal causal mean difference: 
-
-`$$E\{Y(1) - Y(0)\}$$`
-- Conditional causal mean difference:
-
-`$$E\{Y(1) - Y(0)|\mathbf{C}\}$$`
-
-They are called the **Average Causal/Treatment Effect (ACE or ATE)**. 
-
----
-class: middle
-
 ## Potential Causal Estimands - binary outcome
 
 - Marginal causal risk difference:
@@ -244,10 +230,25 @@ $$
 \log\frac{\text{Pr}(Y(1) = 1, \textbf{C})}{1- \text{Pr}(Y(1) = 1,  \textbf{C})} - \log\frac{\text{Pr}(Y(0) = 1, \textbf{C})}{1- \text{Pr}(Y(0) = 1,  \textbf{C})}
 $$
 
+
 ---
 class: middle
 
-## Assumption No 1: **no interference**
+## Potential Causal Estimands - cont. outcome
+
+- Marginal causal mean difference: 
+
+`$$E\{Y(1) - Y(0)\}$$`
+- Conditional causal mean difference:
+
+`$$E\{Y(1) - Y(0)|\mathbf{C}\}$$`
+
+They are called the **Average Causal/Treatment Effect (ACE or ATE)**. 
+
+---
+class: middle
+
+## Assumption No 1: **No Interference**
 
 - Potential value of `\(Y_i\)`, does not depend on `\(X_j\)`: 
 
@@ -274,7 +275,7 @@ $$
 ---
 class: middle 
 
-## Assuption No 3: &lt;br&gt;**Conditional exchangeability**
+## Assuption No 3: &lt;br&gt;**Conditional Exchangeability**
 
 - This means we are so *arrogant* and 100% sure that there is **no other unmeasured confounding**.
 
@@ -290,6 +291,592 @@ class: middle
 ???
 
 Conditional on `\(\mathbf{C}\)`, the actual exposure level `\(X\)` is independent of the level of the potential outcomes.
+
+
+---
+class: middle
+
+## Identification (1): 
+
+Suppose we are interested in a conditional causal mean difference. 
+
+`$$E\{Y(1) - Y(0) | \mathbf{C} = \mathbf{c}\}$$`
+
+Given `\(\mathbf{C}\)`, where `\(\mathbf{C}\)` also is a set of covariates given which we believe **conditional exchangaeability** to be plausible -- no other unmeasured confoundings.
+
+---
+class: middle
+
+## Identification (2): 
+
+
+`$$\begin{aligned}E\{Y(1) - Y(0) | \mathbf{C} = \mathbf{c}\} &amp; = E\{Y(1)| \mathbf{C} = \mathbf{c}\} \\
+&amp;\;\;\;\;\;- E\{Y(2)| \mathbf{C} = \mathbf{c}\} \\
+&amp; =  E\{Y(1)| \color{red}{X = 1}, \mathbf{C} = \mathbf{c}\} \\
+&amp;\;\;\;\;\;- E\{Y(2)| \color{red}{X = 0}, \mathbf{C} = \mathbf{c}\}\\
+&amp; (\text{conditional exchangeability}) \\ 
+&amp; =  E\{\color{red}{Y}| X = 1, \mathbf{C} = \mathbf{c}\} \\
+&amp;\;\;\;\;\;- E\{\color{red}{Y}| X = 0, \mathbf{C} = \mathbf{c}\} \\
+&amp; (\text{by consistency}) \\ 
+\end{aligned}$$`
+
+???
+
+These steps are extremely important, 
+under the assumptions of conditional exchangeability, consistency, we have rewritten our causal estimand -- unobservable potential outcomes -- into the observed data.
+
+---
+class: middle
+
+### Assumptions linked between &lt;br&gt; causal estimand and observed data
+
+These steps are extremely important, 
+under the assumptions of conditional exchangeability, consistency, we have rewritten our causal estimand -- unobservable potential outcomes -- into the observed data.
+
+
+---
+class: middle 
+
+## Estimation using linear regression
+
+Suppose
+
+`$$E\{Y|x = 1, \mathbf{C} = \mathbf{c}\} - E\{Y|x = 0, \mathbf{C} = \mathbf{c}\}$$`
+
+is the same for every `\(\mathbf{c}\)` (covariate), then if we fit a linear regression model:
+
+`$$E(Y|X=x, \mathbf{C} = \mathbf{c}) = \alpha + \color{red}{\beta}x + \gamma^T\mathbf{c}$$`
+
+--
+then the coefficient `\(\color{red}{\beta}\)` of `\(X\)` can be interpreted as the conditional causal mean difference, as long as the model is correctly specified. 
+
+
+---
+class: middle 
+
+### Example: &lt;br&gt; maternal smoking and birth weight (1)
+
+- Data is from Cattaneo &lt;sup&gt;1&lt;/sup&gt; on singleton babies born in Pennsylvania between 1989 and 1991.
+
+- Outcome: birth weight, in grams
+
+- Exposure: whether or not mothers smoked during the pregnancy
+
+- n = 4642
+
+
+
+
+
+
+.footnote[
+&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;font face="sans-serif"&gt;&lt;b&gt;&lt;br&gt;
+[1]
+ Cattaneo, M. D.
+
+ Efficient semiparametric estimation of multi-valued treatment effects under ignorability 
+
+ &lt;em&gt;Journal of Econometrics, &lt;/em&gt;
+
+
+
+ &lt;em&gt;Elsevier, &lt;/em&gt;
+&lt;b&gt;2010&lt;/b&gt;&lt;i&gt;, 155&lt;/i&gt;, 138-154 
+
+
+&lt;p&gt;&lt;/p&gt;&lt;/font&gt;&lt;/body&gt;&lt;/html&gt;
+]
+
+
+---
+class: middle
+### Example: &lt;br&gt; maternal smoking and birth weight (2)
+
+We think there are only 3 confounders:
+
+- maternal age, 
+- whether the baby is the first child,
+- first clinical visit at which trimester. 
+
+---
+class: middle
+
+### One possible linear regression model is:
+
+.small[
+
+```r
+cattaneo2 &lt;- haven::read_dta("data/cattaneo2.dta")
+Cat_mod &lt;- lm(bweight ~ as.factor(mbsmoke) + mage + 
+                as.factor(fbaby) + as.factor(prenatal), data = cattaneo2)
+broom::tidy(Cat_mod, conf.int = TRUE) %&gt;% 
+  knitr::kable(.)
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; std.error &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; p.value &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; conf.low &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; conf.high &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2735.8442 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 78.2260 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 34.9736 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2582.4841 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2889.2043 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; as.factor(mbsmoke)1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -252.2599 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21.5677 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -11.6962 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -294.5428 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -209.9770 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; mage &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5.2681 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.6146 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.2627 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00111 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.1027 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8.4336 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; as.factor(fbaby)1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -59.9184 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17.7004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -3.3851 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00072 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -94.6196 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -25.2172 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; as.factor(prenatal)1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 578.8464 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68.5078 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8.4494 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 444.5386 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 713.1542 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; as.factor(prenatal)2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 534.2280 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 70.6032 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.5666 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 395.8122 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 672.6439 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; as.factor(prenatal)3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 458.5222 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 80.9992 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5.6608 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 299.7252 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 617.3191 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+class: middle
+### Example: &lt;br&gt; maternal smoking and birth weight (3)
+
+- Under assumptions of No Interference (NI),  Consistency (C), Conditional Exchangeability (CE) &lt;br&gt; and, **the model is correctly specified** 
+
+- The estimate `\(\beta = -252.2599\)` can be given a **causal intepretation**: the expected difference in birth weight, conditional on three confounders, comparing a hypothetical situation in which &lt;br&gt; &lt;br&gt; **all mothers smoke** versus a different hypothetical situation in which **no mothers smoke**
+
+
+???
+
+Under the assumptions, for a mother of a given age, first baby status, and timing of first clinical visit, we expect that the baby would be on average 252.3 grams lighter if the mother were hypothetically forced/randomised to smoking, versus if she were hypothetically prevented from smoking. 
+
+---
+class: middle
+
+Under the assumptions, for a mother of a given age, first baby status, and timing of first clinical visit, we expect that the baby would be on average 252.3 grams lighter if the mother were **hypothetically forced/randomised to smoking**, versus if she were **hypothetically prevented from smoking**. 
+
+
+---
+class: middle
+
+## Propensity score analysis (PSA)
+
+
+- PSA make assumptions under the framework of causal inference: &lt;br&gt;No Interference (NI),  Consistency (C), Conditional Exchangeability (CE)
+
+
+--
+- But, instead of modelling `\(E(Y|X, \mathbf{C})\)`, we specify the form of `\(E(X| \mathbf{C})\)`
+
+
+---
+class: middle 
+
+## Propensity score (1)
+
+- The propensity score `\(p(\mathbf{C})\)`, is the conditional probability that `\(X = 1\)` given `\(\mathbf{C}\)`
+
+$$
+p(\mathbf{C}) = p(X = 1 | \mathbf{C})
+$$
+
+- A **scalar**, irrespective of the dimension of `\(\mathbf{C}\)`
+
+
+- Rosenbaum and Rubin &lt;sup&gt;1&lt;/sup&gt; showed that if conditional exchangeability holds given `\(\mathbf{C}\)`, then it also holds given `\(p(\mathbf{C})\)`:
+
+`$$Y(x)\perp \!\!\! \perp X| \textbf{C}, \forall x
+\Rightarrow Y(x)\perp \!\!\! \perp X| \color{red}{p(\textbf{C})}, \forall x$$`
+
+
+.tiny[
+[1] &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;font face="sans-serif"&gt; Rosenbaum, P. R. &amp;amp; Rubin, D. B. The central role of the propensity score in observational studies for causal effects
+ &lt;em&gt;Biometrika, &lt;/em&gt;
+ &lt;em&gt;Oxford University Press, &lt;/em&gt;
+&lt;b&gt;1983&lt;/b&gt;&lt;i&gt;, 70&lt;/i&gt;, 41-55 
+
+
+&lt;p&gt;&lt;/p&gt;&lt;/font&gt;&lt;/body&gt;&lt;/html&gt;
+]
+
+
+---
+class: middle
+
+## Propensity score (2)
+
+- In practice,  `\(p(\mathbf{C})\)` must be estimated by fiting a logistic regression of `\(X\)` on `\(\mathbf{C}\)`; 
+
+- The **predicted values** from the logistic model are the individual propensity scores. 
+
+- The validity of methods based on propensity scores relies on **correctly modelling** `\(E(X| \mathbf{C})\)`
+
+
+---
+class: middle
+
+## Propensity score (3)
+
+- If an exposed and unexposed person have the same value of `\(p(\mathbf{C})\)`, say 0.25, it means they were equally likely to have received the exposure. 
+
+- This is **similar as** in a randomised trial, an exposed and unexposed subject with the same `\(p(\mathbf{C})\)` are exchangeable. Unless: 
+
+  - Important confounders were not included in `\(p(\mathbf{C})\)`; 
+  - `\(p(\mathbf{C})\)` was incorrectly modelled. 
+
+
+---
+class: middle
+
+## Example: RFA dataset (1)
+
+--
+- 3351 patients with metastatic lung cancer were given either standard surgery (n = 1848) or radiofrequency ablation (RFA) (n = 1703) to remove metastatic lung cancer nodules. 
+
+--
+- 3-year progression-free survival is higher (79.2% versus 67.9%) for those who received RFA. 
+
+--
+- But confounding is a concern: larger modules cannot be removed by RFA, so at least some of the apparent protecitve effect of RFA is likely due to RFA given to patients **with already better prognosis**.
+
+
+---
+class: middle
+
+## Example: RFA dataset (2)
+
+- Potential confounders: age, gender, hospital (1,2,3,4), smoking (non, ex, current), nodules numbers, no. other metastatic sites, duration of disease, diameter of largest module, location of primary cancer (bladder, breast, bowel, gullet, kidney, skin, stomach....), modules can be reached easily (easy, moderate, difficult) 
+
+---
+class: middle
+
+## Example: RFA dataset (3)
+
+- Propensity score model: 
+
+
+.small[
+$$
+`\begin{aligned}
+\text{logit}\{ \text{Pr(RFA}|\mathbf{C} \}  = &amp; \beta_0 + \beta_1\text{age} + \beta_2 \text{gender}+ \beta_3I(\text{hospital = 2}) \\
+&amp; +\beta_4I(\text{hospital =3}) + \beta_5I(\text{hospital = 4}) \\
+&amp; + \beta_6I(\text{smoke = 2} ) + \beta_7I(\text{smoke = 3}) + \beta_8\text{nodules}\\
+&amp;  + \beta_9\text{mets} + \beta_{10}\text{duration}+ \cdots  + \beta_{20}I(\text{primary = 9})\\
+&amp;  + \beta_{21}I(\text{position = 2}) + \beta_{22}I(\text{position = 3})
+\end{aligned}`
+$$
+]
+
+- `\(p(\mathbf{C})\)` is estimated from this `\(\uparrow\)` model for every patient.
+
+
+---
+class: middle
+
+### The PS model estimates: 
+
+
+.med[
+&lt;div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:780px; "&gt;&lt;table class="table table-striped" style="margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; std.error &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; p.value &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; conf.low &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; conf.high &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.95799 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.61771 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.78866 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.74981 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.17252 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; age &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.00044 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00993 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.04434 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.96463 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.01993 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.01902 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; gender1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.10435 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.15103 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.69093 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.48961 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.19160 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.40063 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; smoke1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.11862 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.15107 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.78518 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.43235 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.17753 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.41508 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; smoke2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.09342 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.10381 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.89997 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.36814 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.11000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.29704 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; hospital2 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; -0.23564 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.14244 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; -1.65436 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.09805 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; -0.51512 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.04341 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; hospital3 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.30046 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.13851 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 2.16923 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.03007 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.02923 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.57236 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; hospital4 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; -0.11175 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.19237 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; -0.58092 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.56129 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; -0.48898 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.26526 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; nodules &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.02988 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.01821 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -1.64105 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.10079 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.06594 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00550 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; mets &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.06514 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.04672 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.39423 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.16325 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.02641 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.15680 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; duration &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00261 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00489 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.53354 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.59366 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.00698 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.01218 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; maxdia &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; -2.26045 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.08774 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; -25.76373 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.00000 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; -2.43490 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; -2.09089 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; primary2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.09928 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.29102 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.34114 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.73300 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.46959 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.67330 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; primary3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.14593 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.29460 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.49536 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.62035 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.42937 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.72768 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; primary4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.00213 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.38021 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.00559 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.99554 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.74649 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.74543 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; primary5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.22135 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.37933 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.58353 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.55953 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.96499 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.52355 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; primary6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.04505 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.34609 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.13016 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.89644 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.63128 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.72712 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; primary7 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 1.57439 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.64793 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 2.42989 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.01510 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.36040 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 2.92946 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; primary8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.21261 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.38273 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.55552 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.57854 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.53651 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.96525 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; primary9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.33223 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.40566 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.81899 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.41279 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.46107 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.13046 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; position2 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.94096 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.10080 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 9.33491 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.00000 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.74445 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 1.13969 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; position3 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 1.22135 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.11678 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 10.45840 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.00000 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 0.99365 &lt;/td&gt;
+   &lt;td style="text-align:right;font-weight: bold;color: white !important;background-color: #D7261E !important;"&gt; 1.45155 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;&lt;/div&gt;
+]
+
+
+???
+
+As expected, hospital, diameter of largest nodule, and position of the nodule are strong predictors of the treatment. 
+
+
+---
+class: inverse
+background-image: url("./fig/scoreoverlap.png")
+background-position: 50% 50%
+background-size: contain
+
+
+
+
+---
+class: middle
+
+## How do we use the propensity scores?
+
+- If controlling `\(\mathbf{C}\)` is deemed sufficient, then controlling for `\(p(\mathbf{C})\)` is also sufficient. 
+
+- `\(p(\mathbf{C})\)` is a scalar, so controlling for it is much easier than controlling for `\(\mathbf{C}\)`.
+
+- Ways of using the propensity scores include: 
+  - stratification;
+  - matching;
+  - re-weighting (inverse-weighting);
+  - adjustment.
 
 ---
 class: middle, center 
