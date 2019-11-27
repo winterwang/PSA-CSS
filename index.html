@@ -518,11 +518,14 @@ class: middle
 ## Propensity score analysis (PSA)
 
 
-- PSA make assumptions under the framework of causal inference: &lt;br&gt;No Interference (NI),  Consistency (C), Conditional Exchangeability (CE)
+- PSA make assumptions under the framework of causal inference: &lt;br&gt;No Interference (NI),  Consistency (C), Conditional Exchangeability (CE) 
+
+--
+- Plus, the (unknown) propensity score is appropriately modelled using the data.
 
 
 --
-- But, instead of modelling `\(E(Y|X, \mathbf{C})\)`, we specify the form of `\(E(X| \mathbf{C})\)`
+- Instead of modelling `\(E(Y|X, \mathbf{C})\)`, we specify the form of `\(E(X| \mathbf{C})\)`
 
 
 ---
@@ -877,6 +880,37 @@ class: middle
   - matching;
   - re-weighting (inverse-weighting);
   - adjustment.
+
+---
+class: middle
+
+### Stratification (1)
+
+If we subclassifying the patients according to quartiles of `\(\hat{p}(\mathbf{C})\)`: 
+
+.small[
+| PS subclasses | Treatment | N of patients | Prob of death or &lt;br&gt;disease progression (%) | Risk difference (%) |
+|:-------------:|:---------:|:-------------:|:--------------------------------------------:|:-------------------:|
+|       1       |  Standard |      788      |                     37.9                     |         13.1        |
+|               |    RFA    |      100      |                     51.0                     |                     |
+|       2       |  Standard |      547      |                     30.7                     |         6.0         |
+|               |    RFA    |      341      |                     36.7                     |                     |
+|       3       |  Standard |      344      |                     25.6                     |         -4.8        |
+|               |    RFA    |      544      |                     20.8                     |                     |
+|       4       |  Standard |      169      |                     22.5                     |        -13.4        |
+|               |    RFA    |      718      |                      9.1                     |                     |
+]
+
+---
+class: middle
+
+### Stratification (2)
+
+- Our suspicion of confouding is seen clearly, the probability of death or disease progression is higher in the lower categories of the propensity score. 
+
+- There is effect modification by the propensity score. RFA is better than standard surgery only in the upper two propensity score subclasses. 
+
+- The doctors are making choices for their patients. RFA are more likely to be given to patients who can benefit from the treatment.
 
 ---
 class: middle, center 
