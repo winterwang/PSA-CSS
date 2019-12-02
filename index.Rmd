@@ -1,8 +1,8 @@
 ---
-title: "Propensity Score Analysis (PSA)"
+title: "Propensity Score Analysis (PSA) -- Day 1"
 # subtitle: "why we use it and what does it provide"
 author: "王　超辰 | Chaochen Wang"
-date: "2019-12-13(tentative) 17:00~18:00 @CSS"
+date: "2019-12-13 17:00~18:00 @CSS"
 output:
   xaringan::moon_reader:
     css: xaringan-themer.css
@@ -649,6 +649,46 @@ class: middle
 - There is effect modification by the propensity score. RFA is better than standard surgery only in the upper two propensity score subclasses. 
 
 - The doctors are making choices for their patients. RFA are more likely to be given to patients who can benefit from the treatment.
+
+
+---
+class: middle
+
+### Estimating ACE <br> (average causal/treatment effect)
+
+
+The ACE can be estimated as the simple (unweighted) average of the 4 stratum-specific effects:
+
+
+$$
+\widehat{\text{ACE}} = \frac{13.1 + 6.0 - 4.8 - 13.4}{4} = 0.2 \%
+$$
+
+---
+class: middle
+
+### Estimating the ATT <br> (average treatment effect on the **treated**)
+
+
+.between[
+| PS subclasses | Treatment | N of patients | Prob of death or <br>disease progression (%) | Risk difference (%) |
+|:-------------:|:---------:|:-------------:|:--------------------------------------------:|:-------------------:|
+|       1       |  Standard |      788      |                     37.9                     |         13.1        |
+|               |    RFA    |      **100**      |                     51.0                     |                     |
+|       2       |  Standard |      547      |                     30.7                     |         6.0         |
+|               |    RFA    |      **341**      |                     36.7                     |                     |
+|       3       |  Standard |      344      |                     25.6                     |         -4.8        |
+|               |    RFA    |      **544**      |                     20.8                     |                     |
+|       4       |  Standard |      169      |                     22.5                     |        -13.4        |
+|               |    RFA    |      **718**      |                      9.1                     |                     |
+]
+
+.small[
+$$
+\widehat{\text{ATT}} = \frac{-13.1 \times 100 + 6.0 \times 341 - 4.8 \times 544 - 13.4\times718}{100 + 341 + 544 + 718} = -5.2\%
+$$
+]
+
 
 ---
 class: middle, center 
