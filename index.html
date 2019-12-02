@@ -916,7 +916,7 @@ class: middle
 ---
 class: middle
 
-### Estimating ACE &lt;br&gt; (average causal/treatment effect)
+### Estimating  `\(E\{Y(1) - Y(0)\}\)` &lt;br&gt; (average causal/treatment effect, ACE)
 
 
 The ACE can be estimated as the simple (unweighted) average of the 4 stratum-specific effects:
@@ -929,7 +929,7 @@ $$
 ---
 class: middle
 
-### Estimating the ATT &lt;br&gt; (average treatment effect on the **treated**)
+### Estimating `\(E\{Y(1) - Y(0) | X = 1\}\)` &lt;br&gt; (average treatment effect on the **treated**, ATT)
 
 
 .between[
@@ -951,6 +951,9 @@ $$
 $$
 ]
 
+???
+
+The results shows that RFA is beneficial to those who tend to get the treatment (consistent with the effect modification)
 
 ---
 class: middle, center 
