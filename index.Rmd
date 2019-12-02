@@ -177,19 +177,19 @@ class: middle
 WE may interpret this logOR as evidence that patients treated with iron supplement before hip replacement surgery had lower odds of dying wihtin 90 days of operation.
 
 ---
-class: middle
+class: middle, center
 
 ## But, the conditional logOR still cannot answer our question: 
 
 
 --
-# What is the survival probability if, 
+## What is the survival probability if, 
 
 --
-# **contrary to reality**, 
+## **contrary to reality**, 
 
 --
-# every patient were treated with intravenous iron?
+## every patient were treated with intravenous iron?
 
 
 ---
@@ -692,6 +692,39 @@ $$
 ???
 
 The results shows that RFA is beneficial to those who tend to get the treatment (consistent with the effect modification)
+
+
+---
+class: middle, center
+
+# Hold on,
+
+--
+# Before we move on to other methods of using the PS. 
+
+--
+# We should bear in mind that we assumed the model for PS generation was correctly chosen. 
+
+---
+class: middle, center
+
+## Other than that, 
+
+--
+## we also assumed that **all confounders** were included 
+
+--
+## plus, some people may believe including non-confounders but predictive of the X is beneficial for precision. 
+
+
+---
+class: middle
+
+
+## Finally,
+
+--
+## How do we know if there is any other un-observed confounders?
 
 ---
 class: middle, center 
