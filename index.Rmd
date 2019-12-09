@@ -1,7 +1,9 @@
 ---
 title: "Propensity Score Analysis (PSA) -- Day 1"
 # subtitle: "why we use it and what does it provide"
-author: "王　超辰 | Chaochen Wang"
+author: 
+    Chaochen Wang (CWAN) <br>
+    Thomas Laurent (TLAU)
 date: "2019-12-13 17:00~18:00 @CSS"
 output:
   xaringan::moon_reader:
@@ -731,6 +733,58 @@ class: middle
 ---
 class: middle, center 
 
-# The end
+# The end for the first day
 
 ## slide address: https://wangcc.me/PSA-CSS
+
+
+---
+class: middle, center, inverse
+
+# Propensity Score Analysis (PSA) -- Day 2
+### Chaochen Wang (CWAN) <br> Thomas Laurent (TLAU)
+
+### 2020-1-31 (tentative) 17:00~18:00 @CSS
+
+
+---
+class: middle
+
+# Recap
+
+We discussed about:
+
+- the causal inference framework under which that PSA was designed for; 
+
+- the assumptions required when consider using the PSA;
+
+    - No interference, Consistency, Conditional Exchangeability
+
+- ATE calculated through a stratification procedure. 
+
+---
+class: middle
+
+# Today 
+
+We will try to cover: 
+
+- Adjusting for PS in the model; 
+
+- Matching participants by PS; 
+
+- Inversely weighting the participants by their PS;
+
+- Cautions and best guidelines to follow when reporting studies used PS. 
+
+---
+class: middle
+
+## Regression Adjustment
+
+- Another approach of using PS is to **adjust** for the propensity score in a regression model.
+
+$$E\{Y|X, p(\mathbf{C})\} = \alpha + \color{red}{\beta} X + \gamma p(\mathbf{C})$$
+
+
+- $\color{red}{\beta}$ potentially has a **causal (conditional) interpretation**

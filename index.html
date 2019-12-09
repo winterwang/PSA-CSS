@@ -3,7 +3,7 @@
   <head>
     <title>Propensity Score Analysis (PSA) – Day 1</title>
     <meta charset="utf-8" />
-    <meta name="author" content="王　超辰 | Chaochen Wang" />
+    <meta name="author" content="Chaochen Wang (CWAN)   Thomas Laurent (TLAU)" />
     <script src="libs/kePrint-0.0.1/kePrint.js"></script>
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
@@ -12,7 +12,7 @@
 class: center, middle, inverse, title-slide
 
 # Propensity Score Analysis (PSA) – Day 1
-### 王　超辰 | Chaochen Wang
+### Chaochen Wang (CWAN) <br> Thomas Laurent (TLAU)
 ### 2019-12-13 17:00~18:00 <span class="citation">@CSS</span>
 
 ---
@@ -993,9 +993,61 @@ class: middle
 ---
 class: middle, center 
 
-# The end
+# The end for the first day
 
 ## slide address: https://wangcc.me/PSA-CSS
+
+
+---
+class: middle, center, inverse
+
+# Propensity Score Analysis (PSA) -- Day 2
+### Chaochen Wang (CWAN) &lt;br&gt; Thomas Laurent (TLAU)
+
+### 2020-1-31 (tentative) 17:00~18:00 @CSS
+
+
+---
+class: middle
+
+# Recap
+
+We discussed about:
+
+- the causal inference framework under which that PSA was designed for; 
+
+- the assumptions required when consider using the PSA;
+
+    - No interference, Consistency, Conditional Exchangeability
+
+- ATE calculated through a stratification procedure. 
+
+---
+class: middle
+
+# Today 
+
+We will try to cover: 
+
+- Adjusting for PS in the model; 
+
+- Matching participants by PS; 
+
+- Inversely weighting the participants by their PS;
+
+- Cautions and best guidelines to follow when reporting studies used PS. 
+
+---
+class: middle
+
+## Regression Adjustment
+
+- Another approach of using PS is to **adjust** for the propensity score in a regression model.
+
+`$$E\{Y|X, p(\mathbf{C})\} = \alpha + \color{red}{\beta} X + \gamma p(\mathbf{C})$$`
+
+
+- `\(\color{red}{\beta}\)` potentially has a **causal (conditional) interpretation**
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
