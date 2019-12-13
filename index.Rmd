@@ -1002,7 +1002,6 @@ $$E\{Y|X, p(\mathbf{C})\} = \alpha + \color{red}{\beta} X + \gamma p(\mathbf{C})
 - $\gamma$ is now one-dimensional so, **finite sample bias** would no longer be a problem.
 
 
-
   
 ---
 class: inverse
@@ -1015,6 +1014,47 @@ background-size: contain
 
 finite sample bias is no longer a concern for propensity score adjustment as the number of covariates increases. 
 
+
+---
+class: middle
+
+## Matching on the estimated PS
+
+Matching on the PS means we take one patient who recieved RFA and find one (or more than one) match for him/her *with replacement* from those who recieved standard surgery but with a similar value of PS.
+
+- To estimate **average treatment effect in the treated (ATT)**;
+
+
+- If we start matching with those who recieved standard surgery, this will be an estimate of the **average treatment effect in the untreated (ATU)**.
+
+
+---
+class: middle
+
+## Matching methods
+
+- nearest neightbour matching
+
+- within calipers method (Mahalanobis metric matching)
+
+- etc.
+
+- Problem of **poor overlap (or lack of positivity)** is immediately flagged up when some individuals fail to be mached. 
+
+---
+class: middle
+
+## Balance diagnostics after matching
+
+- [Standardized mean difference (SMD)](https://cran.r-project.org/web/packages/tableone/vignettes/smd.html) is mostly used: 
+
+$$SMD = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{(\hat{\sigma_1}^2 + \hat{\sigma_2}^2)/2}} <0.1$$
+
+- For dichotomous variables and categorical variable, see reference <sup>1</sup>: 
+
+.between[
+Yang DS, Dalton JE. A Unified Approach to Measuring the Effect Size Between Two Groups Using SAS. SAS Global Forum 2012. paper 335
+]
 
 
 ---
