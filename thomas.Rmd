@@ -532,7 +532,7 @@ class: middle
 .small[
 $$
 \begin{aligned}
-\text{logit}\{ \text{Pr(RFA}|\mathbf{C} )\}  = & \beta_0 + \beta_1\text{age} + \beta_2 \text{gender}+ \beta_3I(\text{hospital = 2}) \\
+\text{logit}\{ \text{Pr(RFA}|\mathbf{C} \}  = & \beta_0 + \beta_1\text{age} + \beta_2 \text{gender}+ \beta_3I(\text{hospital = 2}) \\
 & +\beta_4I(\text{hospital =3}) + \beta_5I(\text{hospital = 4}) \\
 & + \beta_6I(\text{smoke = 2} ) + \beta_7I(\text{smoke = 3}) + \beta_8\text{nodules}\\
 &  + \beta_9\text{mets} + \beta_{10}\text{duration}+ \cdots  + \beta_{20}I(\text{primary = 9})\\
@@ -619,10 +619,9 @@ class: middle
 
 - Ways of using the propensity scores include: 
   - stratification;
-  - adjustment;
   - matching;
-  - re-weighting (inverse-weighting).
-
+  - re-weighting (inverse-weighting);
+  - adjustment.
 
 ---
 class: middle
@@ -649,7 +648,7 @@ class: middle
 
 ### Stratification (2)
 
-- Our suspicion of confounding is seen clearly, the probability of death or disease progression is higher in the lower categories of the propensity score. 
+- Our suspicion of confouding is seen clearly, the probability of death or disease progression is higher in the lower categories of the propensity score. 
 
 - There is effect modification by the propensity score. RFA is better than standard surgery only in the upper two propensity score subclasses. 
 
@@ -731,100 +730,95 @@ class: middle
 --
 ## How do we know if there is any other un-observed confounders?
 
-
-
-
 ---
 class: middle
-## Check for un-observed confounders (1)
+## How do we know if there is any other un-observed confounders?
 
-- Researchers should routinely test for residual confounding or **endogeneity** (even after PS matching). <br>
-This can be done using residuals of the PS model.
+- Researchers should routinely test for residual confounding or **endogeneity** even after PS matching.
+This can be done using residuals of PS model.
 
-.med[
+.small[
 $$
 \begin{aligned}
-\text{logit}\{ \text{Pr(RFA}|\mathbf{C}) \} & =  \beta_0 + \beta_1\text{age} + \dots + \color{red}{\epsilon}
+\text{logit}\{ \text{Pr(RFA}|\mathbf{C} \}  = & \beta_0 + \beta_1\text{age} + ... + \color{red}{\epsilon}
+\end{aligned}
+$$
+]
+- If the outcome equation is as follows (linear model here for illustration)
+
+.small[
+$$
+\begin{aligned}
+\text{Y} = & \alpha_0 + \alpha_1\text{age} + ...+ \color{red}{\nu}
 \end{aligned}
 $$
 ]
 
+-The following assumption should hold $\small{cor(\text{logit}\{ \text{Pr(RFA}|\mathbf{C} \},\nu)=cor(\epsilon,\nu)=0}$
+
 
 ---
+
 class: middle
-## Check for un-observed confounders (2)
 
-- If the outcome equation is as follows (linear model here for illustration), where $\nu$ is the residuals.
+##Hausman test (Endogeneity test)
 
-.med[
+-Null hypothesis is as follows: 
+$\small{cor(\text{logit}\{ \text{Pr(RFA}|\mathbf{C} \},\nu)=cor(\epsilon,\nu)=0}$
+
+-Equivalent to test $\small{\delta=0}$ in the following equation (using usual tests):
+
+.small[
 $$
 \begin{aligned}
-Y & =  \alpha_0 + \alpha_1\text{age} + \dots + \color{red}{\nu}
+\text{Y} = & \alpha_0 + \alpha_1\text{age} + ...+\color{blue}{\delta} \epsilon +\color{red}{\nu}
 \end{aligned}
 $$
 ]
 
-- The following assumption should hold 
-
-$$\small{cor(\text{logit}\{ \text{Pr(RFA}|\mathbf{C}) \},\nu)=cor(\epsilon,\nu)=0}$$
-
-
 ---
-
 class: middle
 
-## Hausman test (Endogeneity test)
+##Alternative #1 to propensity score based methods: Differences-in-Differences methods
 
-- Null hypothesis is as follows: 
+-Non-parametric alternative
 
-$$\small{cor(\text{logit}\{ \text{Pr(RFA}|\mathbf{C} )\},\nu)=cor(\epsilon,\nu)=0}$$
+-Require 2 periods in a same patient: 
 
-- Equivalent to test $\color{blue}{\delta}=0$ in the following equation (using usual tests):
-
-$$
-\begin{aligned}
-Y =  \alpha_0 + \alpha_1\text{age} + ...+\color{blue}{\delta} \epsilon +\color{red}{\nu}
-\end{aligned}
-$$
+1.  A baseline period in the same period were neither the intervention and the comparator are observed
+2.  a period the intervention or the comparator is attributed
 
 
 ---
 class: middle
-
-## Alternative #1: (1)<br> Differences-in-Differences methods
-
-Other than fitting models to calculate propensity scores, we may do the following:
-<!-- to propensity score based methods -->
-
-- Non-parametric alternative
-
-- Require 2 periods in a same patient: 
-
-1.  A baseline period in the same period when neither the intervention nor the comparator are observed
-2.  A period the intervention or the comparator is attributed
-
-
----
-class: middle
-
-## Alternative #1: (2)
 
 - The outcome equations for the respective periods are:
 
-
+.small[
 $$
 \begin{aligned}
-Y_{i1} & =  B_0 + B_1 X_{i1}+\mathbf{B_2 \lambda_{i}} +\epsilon_{i1} \\
-Y_{i2} & = B_0 + B_1 X_{i2}+\mathbf{B_2 \lambda_{i}} + \color{red}{B_3 T_i}+\epsilon_{i2}
+Y_{i1} = & B_0 + B_1 X_{i1}+\mathbf{B_2 \lambda_{i}} +\epsilon_{i1}
 \end{aligned}
 $$
+]
 
+.small[
+$$
+\begin{aligned}
+Y_{i2} = & B_0 + B_1 X_{i2}+\mathbf{B_2 \lambda_{i}} + \color{red}{B_3 T_i}+\epsilon_{i2}
+\end{aligned}
+$$
+]
 
 - The effect for each patient is estimated as follows:
 
-$$Y_{i2}-Y_{i1} = B_1(X_{i2}-X_{i1})+B_3T_i+(\epsilon_{i2}-\epsilon_{i1})$$
-
-
+.small[
+$$
+\begin{aligned}
+Y_{i2}-Y_{i1}=B_1(X_{i2}-X_{i1})+B_3T_i+(\epsilon_{i2}-\epsilon_{i1})
+\end{aligned}
+$$
+]
 ---
 class: middle
 
@@ -846,11 +840,11 @@ class: middle
 ##Alternative #2: Endogenous switching regression (Econometric approach)
 
 
-- Use in practice when heterogeneity is observed
+-Use in practice when heterogeneity is observed
 
-- Compared to propensity score model, the selection process is modeled and counterfactuals are considered to estimate the effects
+-Compared to propensity score model, the selection process is modeled and counterfactuals are considered to estimate the effects
 
-- ATE (average treatment effect), ATT, **ATU** (Average treatment effect on untreated population), heterogeneity for each outcome
+-ATE (average treatment effect), ATT, **ATU** (Average treatment effect on untreated population), heterogeneity for each outcome
 
 
 
@@ -859,7 +853,7 @@ class: middle
 
 ## Definitions of the different effects
 
-- Average treatment among the untreated
+-Average treatment among the untreated
 
 .med[
 $$
@@ -867,7 +861,7 @@ ATU: E(Y(1) - Y(0)|\mathbf{X,W=0})
 $$
 ]
 
-- Effect of heterogeneity in the treated
+-Effect of heterogeneity in the treated
 
 .med[
 $$
@@ -875,7 +869,7 @@ BH1: E(Y(0)|\mathbf{X,W=1})-E(Y(0)|\mathbf{X,W=0})
 $$
 ]
 
-- Effect of heterogeneity in the untreated
+-Effect of heterogeneity in the untreated
 
 .med[
 $$
@@ -896,8 +890,8 @@ $A_i^{*}=Z_i\alpha+\eta_i$ **(1)**, with $Z_i$ as observed variables (at least o
 $$
 A_i=
 \begin{cases}
-1 & \text{ if } A_i^{*}>0\\
-0 & \text{otherwise}
+1 & if A_i^{*}>0\\
+0 & otherwise
 \end{cases}
 $$
 ]
@@ -911,10 +905,11 @@ class: middle
 
 
 $$
-\begin{aligned}
-Y_{1i} & =  X_{1i}\beta_1+\epsilon_{1i} \\
-Y_{0i} & =  X_{0i}\beta_0+\epsilon_{0i}
-\end{aligned}
+\begin{array}
+\\
+Y_{1i}= & X_{1i}\beta_1+\epsilon_{1i} \\
+Y_{0i}=& X_{0i}\beta_0+\epsilon_{0i}
+\end{array}
 $$
 
 - Correlations between residuals in **(1)** and **(2)** are nonzero (presence of heterogeneity).
@@ -938,8 +933,10 @@ class: middle
 - Difficult to find a good instrument in practice (variable included in the selection process not related to the outcome directly)
 
 
-
 ---
+
+
+
 class: middle, center 
 
 # The end for the first day
