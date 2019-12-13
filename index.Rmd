@@ -27,9 +27,9 @@ class: middle
 
 - Understand the **pre-assumptions** that required for PSA.
 
-- Discuss the ways of using Propensity Scores. 
-
 - How to test for unobserved confounders? <br>(by TLAU)
+
+- Discuss the ways of using Propensity Scores. 
 
 <!-- - Understand that PSA is **not omnipotent** -->
 
