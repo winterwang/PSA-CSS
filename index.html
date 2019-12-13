@@ -28,8 +28,6 @@ class: middle
 
 - Understand the **pre-assumptions** that required for PSA.
 
-
-
 - How to test for unobserved confounders? &lt;br&gt;(by TLAU)
 
 - Discuss the ways of using Propensity Scores. 
@@ -180,14 +178,9 @@ class: middle
 
 
 - So we have some statistical variable selection procedure. 
-
-- Transfusion, and length of stay in hospital are on the causal pathway from `\(X\)` to `\(Y\)`, so they were excluded from adjustment
-
+- Transfusion, and length of stay in hospital are on the causal pathway from `\(X\)` to `\(Y\)`, so they were excluded from adjustment.
 - After adjustment of the other covariates, we have an estimated conditional logOR of &lt;br&gt; -0.24 (95% CI -0.41, -0.07)
-
-???
-
-WE may interpret this logOR as evidence that patients treated with iron supplement before hip replacement surgery had lower odds of dying wihtin 90 days of operation.
+- WE may interpret this logOR as evidence that patients treated with iron supplement before hip replacement surgery had lower odds of dying wihtin 90 days of operation.
 
 ---
 class: middle, center
@@ -315,9 +308,9 @@ class: middle
 
 
 `$$\begin{aligned}E\{Y(1) - Y(0) | \mathbf{C} = \mathbf{c}\} &amp; = E\{Y(1)| \mathbf{C} = \mathbf{c}\} \\
-&amp;\;\;\;\;\;- E\{Y(2)| \mathbf{C} = \mathbf{c}\} \\
+&amp;\;\;\;\;\;- E\{Y(0)| \mathbf{C} = \mathbf{c}\} \\
 &amp; =  E\{Y(1)| \color{red}{X = 1}, \mathbf{C} = \mathbf{c}\} \\
-&amp;\;\;\;\;\;- E\{Y(2)| \color{red}{X = 0}, \mathbf{C} = \mathbf{c}\}\\
+&amp;\;\;\;\;\;- E\{Y(0)| \color{red}{X = 0}, \mathbf{C} = \mathbf{c}\}\\
 &amp; (\text{conditional exchangeability}) \\ 
 &amp; =  E\{\color{red}{Y}| X = 1, \mathbf{C} = \mathbf{c}\} \\
 &amp;\;\;\;\;\;- E\{\color{red}{Y}| X = 0, \mathbf{C} = \mathbf{c}\} \\
@@ -332,10 +325,14 @@ under the assumptions of conditional exchangeability, consistency, we have rewri
 ---
 class: middle
 
-### Assumptions linked between &lt;br&gt; causal estimand and observed data
+## Assumptions linked between &lt;br&gt; causal estimand and observed data
 
 These steps are extremely important, 
-under the assumptions of conditional exchangeability, consistency, we have rewritten our causal estimand -- unobservable potential outcomes -- into the observed data.
+under the assumptions of conditional exchangeability, consistency, we have rewritten our causal estimand 
+
+-- unobservable potential outcomes -- 
+
+into the observed data.
 
 
 ---
@@ -412,7 +409,8 @@ class: middle
 ```r
 cattaneo2 &lt;- haven::read_dta("data/cattaneo2.dta")
 Cat_mod &lt;- lm(bweight ~ as.factor(mbsmoke) + mage + 
-                as.factor(fbaby) + as.factor(prenatal), data = cattaneo2)
+                as.factor(fbaby) + as.factor(prenatal), 
+              data = cattaneo2)
 broom::tidy(Cat_mod, conf.int = TRUE) %&gt;% 
   knitr::kable(.)
 ```
@@ -503,7 +501,7 @@ class: middle
 
 - Under assumptions of No Interference (NI),  Consistency (C), Conditional Exchangeability (CE) &lt;br&gt; and, **the model is correctly specified** 
 
-- The estimate `\(\beta = -252.2599\)` can be given a **causal intepretation**: the expected difference in birth weight, conditional on three confounders, comparing a hypothetical situation in which &lt;br&gt; &lt;br&gt; **all mothers smoke** versus a different hypothetical situation in which **no mothers smoke**
+- The estimate `\(\beta = -252.2599\)` can be given a **causal intepretation**: the expected difference in birth weight, conditional on three confounders, comparing a hypothetical situation in which: &lt;br&gt; &lt;br&gt; **all mothers smoke** versus a different hypothetical situation in which **no mothers smoke**
 
 
 ???
@@ -600,7 +598,7 @@ class: middle
 - 3-year progression-free survival is higher (79.2% versus 67.9%) for those who received RFA. 
 
 --
-- But confounding is a concern: larger modules cannot be removed by RFA, so at least some of the apparent protecitve effect of RFA is likely due to RFA given to patients **with already better prognosis**.
+- But confounding is a concern: larger modules cannot be removed by RFA, so at least some of the apparent protective effect of RFA is likely due to RFA given to patients **with already better prognosis**.
 
 
 ---
