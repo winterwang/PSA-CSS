@@ -36,7 +36,6 @@ class: middle
 ???
 
 
-
 ---
 class: middle, center, inverse
 
@@ -1015,3 +1014,15 @@ background-size: contain
 ???
 
 finite sample bias is no longer a concern for propensity score adjustment as the number of covariates increases. 
+
+
+
+---
+class: middle 
+
+# Reading list
+
+1. 5 misunderstandings about propensity score <br> [PSに関する5つの誤解](https://healthpolicyhealthecon.com/2015/05/07/propensity-score-2/)
+
+2. Causal inference in Statistics,  [統計学における因果推論（ルービンの因果モデル）](https://healthpolicyhealthecon.com/2014/11/30/rubin_causal_model/)
+
