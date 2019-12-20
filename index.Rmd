@@ -1056,6 +1056,16 @@ $$SMD = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{(\hat{\sigma_1}^2 + \hat{\sigma_2}^2)
 Yang DS, Dalton JE. A Unified Approach to Measuring the Effect Size Between Two Groups Using SAS. SAS Global Forum 2012. paper 335
 ]
 
+---
+class: middle
+
+## Inverse probability weighting
+
+- The propensity scores we have calculated are the **conditional probabilities** - based on all of the confounders we have found and included - that the individuals will be exposed. 
+
+- So there are some individuals, who, condition on their confounders, are more or less likely to be exposed. 
+
+
 
 ---
 class: middle 
