@@ -172,7 +172,7 @@ class: middle
 - So we have some statistical variable selection procedure. 
 - Transfusion, and length of stay in hospital are on the causal pathway from $X$ to $Y$, so they were excluded from adjustment.
 - After adjustment of the other covariates, we have an estimated conditional logOR of <br> -0.24 (95% CI -0.41, -0.07)
-- WE may interpret this logOR as evidence that patients treated with iron supplement before hip replacement surgery had lower odds of dying wihtin 90 days of operation.
+- WE may interpret this logOR as evidence that patients treated with iron supplement before hip replacement surgery had lower odds of dying within 90 days of operation.
 
 ---
 class: middle, center
@@ -195,7 +195,7 @@ class: middle
 
 ## Causal languages
 
-1. We ask the question: how $Y$ would react if we could change $X$ and assign it, **contrary to how it was accually assigned.** <br> -- potential outcomes <br>(Neyman, 1923; Rubin, D. 1974)
+1. We ask the question: how $Y$ would react if we could change $X$ and assign it, **contrary to how it was actually assigned.** <br> -- potential outcomes <br>(Neyman, 1923; Rubin, D. 1974)
 
 2. $Y(x)$ is defined as the value that $Y$ would take if $X$ were (hypothetically) set to value of $x$
 
@@ -1070,7 +1070,20 @@ class: middle
 
 ## Inverse probability weighting (2)
 
-- If someone in the study we found that (s)he, condition on her/his all available confounders, was unlikely to be exposed to the intervention (treatment), $p(\mathbf{C})$ is small.
+- If we found that someone in the study, condition on her/his all available confounders, was **unlikely** to be exposed to the intervention (treatment), $p(\mathbf{C})$ is small.
+
+--
+- We may consider **upweight** him/her, so that (s)he represents him/her and also many other who may like him/her who were unlikely to be unexposed.
+
+--
+- Then we will have a re-weighted dataset in which **X** (exposure), and $p(\mathbf{C})$ are independent, but everything else is unchanged. 
+
+
+---
+class: middle 
+
+## Simple example 
+
 
 
 ---
