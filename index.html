@@ -1336,15 +1336,49 @@ class: middle
 - We may consider **upweight** him/her, so that (s)he represents him/her and also many other who may like him/her who were unlikely to be unexposed.
 
 --
-- Then we will have a re-weighted dataset in which **X** (exposure), and `\(p(\mathbf{C})\)` are independent, but everything else is unchanged. 
+- Then we will have a re-weighted dataset in which `\(\mathbf{X}\)` (exposure), and `\(p(\mathbf{C})\)` are independent, but everything else is unchanged. 
 
 
 ---
 class: middle 
 
-## Simple example 
+## Simple example (1)
+
+- Suppose the counterfactual data are:
+
+|      Group     | A | A | A | B | B | B | D | D | D |
+|:--------------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Response `\(Y(1)\)`: | 1 | 1 | 1 | 2 | 2 | 2 | 3 | 3 | 3 |
+| Response `\(Y(0)\)`: | 0 | 0 | 0 | 1 | 1 | 1 | 2 | 2 | 2 |
+
+- Even without fitting any model, we can tell that the average treatment effect (ATE) is 1. 
+
+---
+class: middle
+
+## Simple example (2)
+
+- However, we can only observe (in the real world under consistency):
+
+|     Group    |  A |  A |  A |  B |  B |  B |  D |  D |  D |
+|:------------:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+|  Exposed `\(Y\)`:  |  1 |  1 | NA | NA |  2 | NA |  3 | NA | NA |
+| Unexposed `\(Y\)`: | NA | NA |  0 |  1 | NA |  1 | NA |  2 |  2 |
 
 
+- The estimated average treatment effect (ATE) is &lt;br&gt; 7/4 - 6/5 = 0.55, **(hugely biased)**
+
+
+---
+class: middle
+
+## Weighting to reduce bias
+
+- The probability of recieving treatment: 
+
+  - 2/3 in group A; 
+  - 1/3 in group B;
+  - 1/3 in group D.
 
 ---
 class: middle 
