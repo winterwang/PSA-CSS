@@ -1112,13 +1112,29 @@ class: middle
 ---
 class: middle
 
-## Weighting to reduce bias
+## Weighting to reduce bias (IPTW)
 
 - The probability of recieving treatment: 
 
   - 2/3 in group A; 
   - 1/3 in group B;
   - 1/3 in group D.
+
+- Calculate weighted average <br> (by **1/{Probability of observed treament}**)
+
+
+.small[
+$$\frac{(1 + 1) \times \frac{3}{2} + (2) \times \frac{3}{1} + (3) \times \frac{3}{1}}{\frac{3}{2} + \frac{3}{2} + \frac{3}{1} + \frac{3}{1}} \\ \;\;\;\;- \frac{(0) \times \frac{3}{1} + (1 + 1) \times \frac{3}{2} + (2 + 2) \times \frac{3}{2}}{\frac{3}{1} + \frac{3}{2}+ \frac{3}{2}+ \frac{3}{2}}= 2-1 = 1$$
+]
+
+---
+class: middle
+
+## **I**nverse **P**robability of **T**reatment **W**eighting (IPTW)
+
+- IPTW successfully removed the bias by creating a "fake" population where we 'observe' each subject at each exposure level.
+
+- It can be proved that IPTW can provide consistent estimators. 
 
 ---
 class: middle 
