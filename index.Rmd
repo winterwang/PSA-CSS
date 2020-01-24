@@ -827,7 +827,7 @@ $$Y_{i2}-Y_{i1} = B_1(X_{i2}-X_{i1})+B_3T_i+(\epsilon_{i2}-\epsilon_{i1})$$
 ---
 class: middle
 
-###Pros
+### Pros
 
 - remove unobserved fixed effects
 
@@ -835,14 +835,14 @@ class: middle
 
 - possibility to combine DID with PS matching (**Heckman et al.**)
 
-###Cons
+### Cons
 
 - DID estimator interpretation is not clear in the presence of within-treatment heterogeneity (differential effect in subgroups of non-observed characteristics)
 
 ---
 class: middle
 
-##Alternative #2: Endogenous switching regression (Econometric approach)
+## Alternative #2: Endogenous switching regression (Econometric approach)
 
 
 - Use in practice when heterogeneity is observed
@@ -952,7 +952,7 @@ class: middle, center, inverse
 # Propensity Score Analysis (PSA) -- Day 2
 ### Chaochen Wang (CWAN) <br> Thomas Laurent (TLAU)
 
-### 2020-1-31 (tentative) 17:00~18:00 @CSS
+### 2020-2-14 (tentative) 16:00~17:00 @CSS
 
 
 ---
@@ -1135,6 +1135,14 @@ class: middle
 - IPTW successfully removed the bias by creating a "fake" population where we 'observe' each subject at each exposure level.
 
 - It can be proved that IPTW can provide consistent estimators. 
+
+---
+class: middle
+
+## IPTW conditioning on binary confounder C
+
+
+
 
 ---
 class: middle 
