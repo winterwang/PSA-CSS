@@ -1139,9 +1139,92 @@ class: middle
 ---
 class: middle
 
-## IPTW conditioning on binary confounder C
+## IPTW conditioning on binary confounder C (1)
+
+.pull-left[
+- Observed data: 
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+</style>
+<table class="tg">
+  <tr>
+    <th class="tg-9d8n"></th>
+    <th class="tg-9d8n" colspan="2">Y = 1</th>
+    <th class="tg-9d8n" colspan="2">Y = 0</th>
+  </tr>
+  <tr>
+    <td class="tg-9d8n"></td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 1</td>
+    <td class="tg-p0ii">180</td>
+    <td class="tg-9d8n">200</td>
+    <td class="tg-p0ii">600</td>
+    <td class="tg-9d8n">200</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 0</td>
+    <td class="tg-p0ii">20</td>
+    <td class="tg-9d8n">200</td>
+    <td class="tg-p0ii">200</td>
+    <td class="tg-9d8n">600</td>
+  </tr>
+</table>
+]
 
 
+
+.pull-right[
+- Table of $P(X|C)$ 
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+</style>
+<table class="tg">
+  <tr>
+    <th class="tg-9d8n"></th>
+    <th class="tg-9d8n" colspan="2">Y = 1</th>
+    <th class="tg-9d8n" colspan="2">Y = 0</th>
+  </tr>
+  <tr>
+    <td class="tg-9d8n"></td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 1</td>
+    <td class="tg-p0ii">0.780</td>
+    <td class="tg-9d8n">0.333</td>
+    <td class="tg-p0ii">0.780</td>
+    <td class="tg-9d8n">0.333</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 0</td>
+    <td class="tg-p0ii">0.220</td>
+    <td class="tg-9d8n">0.667</td>
+    <td class="tg-p0ii">0.220</td>
+    <td class="tg-9d8n">0.667</td>
+  </tr>
+</table>
+
+]
+
+Where, $0.780 = (180 + 600)/(180 + 600 + 20 + 200)$
 
 
 ---

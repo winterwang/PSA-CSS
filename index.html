@@ -1399,9 +1399,92 @@ class: middle
 ---
 class: middle
 
-## IPTW conditioning on binary confounder C
+## IPTW conditioning on binary confounder C (1)
+
+.pull-left[
+- Observed data: 
+
+&lt;style type="text/css"&gt;
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+&lt;/style&gt;
+&lt;table class="tg"&gt;
+  &lt;tr&gt;
+    &lt;th class="tg-9d8n"&gt;&lt;/th&gt;
+    &lt;th class="tg-9d8n" colspan="2"&gt;Y = 1&lt;/th&gt;
+    &lt;th class="tg-9d8n" colspan="2"&gt;Y = 0&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;C = 1&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;C = 0&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;C = 1&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;C = 0&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;X = 1&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;180&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;200&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;600&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;200&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;X = 0&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;20&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;200&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;200&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;600&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+]
 
 
+
+.pull-right[
+- Table of `\(P(X|C)\)` 
+
+&lt;style type="text/css"&gt;
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+&lt;/style&gt;
+&lt;table class="tg"&gt;
+  &lt;tr&gt;
+    &lt;th class="tg-9d8n"&gt;&lt;/th&gt;
+    &lt;th class="tg-9d8n" colspan="2"&gt;Y = 1&lt;/th&gt;
+    &lt;th class="tg-9d8n" colspan="2"&gt;Y = 0&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;C = 1&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;C = 0&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;C = 1&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;C = 0&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;X = 1&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;0.780&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;0.333&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;0.780&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;0.333&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;X = 0&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;0.220&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;0.667&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;0.220&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;0.667&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+]
+
+Where, `\(0.780 = (180 + 600)/(180 + 600 + 20 + 200)\)`
 
 
 ---
