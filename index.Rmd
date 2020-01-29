@@ -1184,7 +1184,7 @@ class: middle
 
 
 .pull-right[
-- Table of $P(X|C)$ 
+- Table of $\color{red}{P(X|C)}$ 
 
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
@@ -1225,6 +1225,111 @@ class: middle
 ]
 
 Where, $0.780 = (180 + 600)/(180 + 600 + 20 + 200)$
+
+
+---
+class: middle 
+## IPTW conditioning on binary confounder C (2)
+
+- Dividing each cell count by $\color{red}{P(X|C)}$ 
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+</style>
+<table class="tg">
+  <tr>
+    <th class="tg-9d8n"></th>
+    <th class="tg-9d8n" colspan="2">Y = 1</th>
+    <th class="tg-9d8n" colspan="2">Y = 0</th>
+  </tr>
+  <tr>
+    <td class="tg-9d8n"></td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 1</td>
+    <td class="tg-p0ii">180/0.78 <br>= 231</td>
+    <td class="tg-9d8n">200/0.333 <br>= 600</td>
+    <td class="tg-p0ii">600/0.78 <br>= 769</td>
+    <td class="tg-9d8n">200/0.333 <br>= 600</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 0</td>
+    <td class="tg-p0ii">20/0.22 <br>= 91</td>
+    <td class="tg-9d8n">200/0.667 <br>= 300</td>
+    <td class="tg-p0ii">200/0.22 <br>= 909</td>
+    <td class="tg-9d8n">600/0.667 <br>= 900</td>
+  </tr>
+</table>
+
+---
+class: middle
+## IPTW conditioning on binary confounder C (3)
+
+- The impact of inverse weighting by $\color{red}{P(X|C)}$ is to create a pseudo(fake)-population where we 'observe' each subject at each exposure level: 
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-390v{background-color:#f8ff00;font-size:22px;border-color:inherit;text-align:left;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+.tg .tg-ovs6{font-size:22px;background-color:#f8ff00;border-color:inherit;text-align:left;vertical-align:top}
+</style>
+<table class="tg">
+  <tr>
+    <th class="tg-9d8n"></th>
+    <th class="tg-9d8n" colspan="2">Y = 1</th>
+    <th class="tg-9d8n" colspan="2">Y = 0</th>
+    <th class="tg-0pky"></th>
+    <th class="tg-0pky"></th>
+  </tr>
+  <tr>
+    <td class="tg-9d8n"></td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+    <td class="tg-390v">C = 1</td>
+    <td class="tg-ovs6">C = 0</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 1</td>
+    <td class="tg-p0ii">231</td>
+    <td class="tg-9d8n">600</td>
+    <td class="tg-p0ii">769</td>
+    <td class="tg-9d8n">600</td>
+    <td class="tg-390v">1000</td>
+    <td class="tg-ovs6">1200</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 0</td>
+    <td class="tg-p0ii">91</td>
+    <td class="tg-9d8n">300</td>
+    <td class="tg-p0ii">909</td>
+    <td class="tg-9d8n">900</td>
+    <td class="tg-390v">1000</td>
+    <td class="tg-ovs6">1200</td>
+  </tr>
+</table>
+
+---
+class: middle
+
+# IPTW example - data
+
+- Right heart catheterization data
+
+(https://www.coursera.org/lecture/crash-course-in-causality/data-example-in-r-Ie48W)
 
 
 ---

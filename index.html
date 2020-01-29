@@ -1444,7 +1444,7 @@ class: middle
 
 
 .pull-right[
-- Table of `\(P(X|C)\)` 
+- Table of `\(\color{red}{P(X|C)}\)` 
 
 &lt;style type="text/css"&gt;
 .tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
@@ -1485,6 +1485,111 @@ class: middle
 ]
 
 Where, `\(0.780 = (180 + 600)/(180 + 600 + 20 + 200)\)`
+
+
+---
+class: middle 
+## IPTW conditioning on binary confounder C (2)
+
+- Dividing each cell count by `\(\color{red}{P(X|C)}\)` 
+
+&lt;style type="text/css"&gt;
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+&lt;/style&gt;
+&lt;table class="tg"&gt;
+  &lt;tr&gt;
+    &lt;th class="tg-9d8n"&gt;&lt;/th&gt;
+    &lt;th class="tg-9d8n" colspan="2"&gt;Y = 1&lt;/th&gt;
+    &lt;th class="tg-9d8n" colspan="2"&gt;Y = 0&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;C = 1&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;C = 0&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;C = 1&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;C = 0&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;X = 1&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;180/0.78 &lt;br&gt;= 231&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;200/0.333 &lt;br&gt;= 600&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;600/0.78 &lt;br&gt;= 769&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;200/0.333 &lt;br&gt;= 600&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;X = 0&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;20/0.22 &lt;br&gt;= 91&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;200/0.667 &lt;br&gt;= 300&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;200/0.22 &lt;br&gt;= 909&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;600/0.667 &lt;br&gt;= 900&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+---
+class: middle
+## IPTW conditioning on binary confounder C (3)
+
+- The impact of inverse weighting by `\(\color{red}{P(X|C)}\)` is to create a pseudo(fake)-population where we 'observe' each subject at each exposure level: 
+
+&lt;style type="text/css"&gt;
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-390v{background-color:#f8ff00;font-size:22px;border-color:inherit;text-align:left;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+.tg .tg-ovs6{font-size:22px;background-color:#f8ff00;border-color:inherit;text-align:left;vertical-align:top}
+&lt;/style&gt;
+&lt;table class="tg"&gt;
+  &lt;tr&gt;
+    &lt;th class="tg-9d8n"&gt;&lt;/th&gt;
+    &lt;th class="tg-9d8n" colspan="2"&gt;Y = 1&lt;/th&gt;
+    &lt;th class="tg-9d8n" colspan="2"&gt;Y = 0&lt;/th&gt;
+    &lt;th class="tg-0pky"&gt;&lt;/th&gt;
+    &lt;th class="tg-0pky"&gt;&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;C = 1&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;C = 0&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;C = 1&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;C = 0&lt;/td&gt;
+    &lt;td class="tg-390v"&gt;C = 1&lt;/td&gt;
+    &lt;td class="tg-ovs6"&gt;C = 0&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;X = 1&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;231&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;600&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;769&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;600&lt;/td&gt;
+    &lt;td class="tg-390v"&gt;1000&lt;/td&gt;
+    &lt;td class="tg-ovs6"&gt;1200&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-9d8n"&gt;X = 0&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;91&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;300&lt;/td&gt;
+    &lt;td class="tg-p0ii"&gt;909&lt;/td&gt;
+    &lt;td class="tg-9d8n"&gt;900&lt;/td&gt;
+    &lt;td class="tg-390v"&gt;1000&lt;/td&gt;
+    &lt;td class="tg-ovs6"&gt;1200&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+---
+class: middle
+
+# IPTW example - data
+
+- Right heart catheterization data
+
+(https://www.coursera.org/lecture/crash-course-in-causality/data-example-in-r-Ie48W)
 
 
 ---
