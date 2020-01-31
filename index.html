@@ -1585,7 +1585,7 @@ class: middle
 ---
 class: middle
 
-# IPTW example - data
+# PS matching and IPTW example - data
 
 - Right heart catheterization data
 
@@ -1606,9 +1606,74 @@ class: middle
 ---
 class: middle
 
-## First steps - load
+## First steps &lt;br&gt;- load packages, read in data
 
 
+```r
+# load packages
+library(tableone)
+library(Matching)
+
+# Read in data
+load(url("http://biostat.mc.vanderbilt.edu/wiki/pub/Main/DataSets/rhc.sav"))
+```
+
+
+---
+class: middle
+
+## Second steps - create data set
+
+.med[
+
+```r
+# create a data set with just these variables, for simplicity
+library(tidyverse) # load this package if you have not
+
+dat &lt;- rhc %&gt;% 
+  dplyr::select(cat1, sex, death, age, swang1, meanbp1) %&gt;% 
+  mutate(ARF = as.numeric(cat1 == "ARF"), 
+         CHF = as.numeric(cat1 == "CHF"), 
+         Cirr = as.numeric(cat1 == "Cirrhosis"), 
+         colcan = as.numeric(cat1 == "Colon Cancer"), 
+         Coma = as.numeric(cat1 == "Coma"), 
+         COPD = as.numeric(cat1 == "COPD"), 
+         lungcan = as.numeric(cat1 == "Lung Cancer"), 
+         MOSF = as.numeric(cat1 == "MOSF w/Malignancy"), 
+         sepsis = as.numeric(cat1 == "MOSF w/Sepsis"), 
+         female = as.numeric(sex == "Female"), 
+         died = as.numeric(death == "Yes"), 
+         treatment = as.numeric(swang1 == "RHC"), 
+         age = as.numeric(age), 
+         meanbp1 = as.numeric(meanbp1))
+```
+]
+
+
+---
+class: middle 
+
+## Continued
+
+
+```r
+# Covariates will be used: 
+xvars &lt;- c("ARF", "CHF", "Cirr", "colcan", "Coma", "lungcan", "MOSF", 
+           "sepsis", "age", "female", "meanbp1")
+```
+
+### Create a Table 1
+
+
+```r
+# Look at a table 1
+
+table1 &lt;- CreateTableOne(vars = xvars, strata = "treatment", 
+                         data = dat, test = FALSE)
+
+# include standardized mean difference (SMD)
+print(table1, smd = TRUE)
+```
 
 
 ---
