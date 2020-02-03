@@ -13,3 +13,8 @@ kableExtra
 tableone
 MASS
 Matching
+ipw
+sandwich
+Matrix
+survival
+survey

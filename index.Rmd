@@ -45,7 +45,7 @@ class: middle, center, inverse
 ---
 class: middle
 
-## What do me mean by <br>"causal inference"? (1)
+## What do we mean by <br>"causal inference"? (1)
 
 
 - Most data analysis in medical research (or in other area) has a central aim - to learn about **cause-effect relationships**. 
@@ -58,7 +58,7 @@ class: middle
 ---
 class: middle
 
-## What do me mean by <br>"causal inference"? (2)
+## What do we mean by <br>"causal inference"? (2)
 
 - Randomised studies are **randomised** precisely to make causal inference more reliable. 
 
@@ -1496,6 +1496,19 @@ class: middle
 
 - by simply performing a paired t-test
 
+```{r echo=FALSE}
+# do greedy matching
+greedymatch <- Match(Tr = dat$treatment, 
+                     M = 1, # 1:1
+                     X = dat[xvars])
+
+matched <- dat[unlist(greedymatch[c("index.treated", "index.control")]), ]
+matchedtab1 <- CreateTableOne(vars = xvars, strata = "treatment", 
+                              data = matched, test = FALSE)
+```
+
+
+
 .med[
 ```{r}
 # outcome analysis
@@ -1555,6 +1568,104 @@ class: middle
 - Same conclusion from the paried t-test <br>-- treated persons were at higher risk of death
 
 
+---
+class: middle
+
+# IPTW - example using the same data
+
+- load packages, read in data
+
+```{r message=FALSE, cache=TRUE}
+# load packages
+library(tableone)
+{{library(sandwich)}} # for robust variance estimation
+{{library(ipw)}}
+{{library(survey)}}
+
+# Read in data
+load(url("http://biostat.mc.vanderbilt.edu/wiki/pub/Main/DataSets/rhc.sav"))
+```
+
+---
+class: middle
+
+## Calculate the propensity score
+
+```{r echo=FALSE}
+# create a data set with just these variables, for simplicity
+library(tidyverse) # load this package if you have not
+
+dat <- rhc %>% 
+  dplyr::select(cat1, sex, death, age, swang1, meanbp1, aps1) %>% 
+  mutate(ARF = as.numeric(cat1 == "ARF"), 
+         CHF = as.numeric(cat1 == "CHF"), 
+         Cirr = as.numeric(cat1 == "Cirrhosis"), 
+         colcan = as.numeric(cat1 == "Colon Cancer"), 
+         Coma = as.numeric(cat1 == "Coma"), 
+         COPD = as.numeric(cat1 == "COPD"), 
+         lungcan = as.numeric(cat1 == "Lung Cancer"), 
+         MOSF = as.numeric(cat1 == "MOSF w/Malignancy"), 
+         sepsis = as.numeric(cat1 == "MOSF w/Sepsis"), 
+         female = as.numeric(sex == "Female"), 
+         died = as.numeric(death == "Yes"), 
+         treatment = as.numeric(swang1 == "RHC"), 
+         age = as.numeric(age), 
+         meanbp1 = as.numeric(meanbp1), 
+         aps = as.numeric(aps1))
+
+```
+
+
+
+```{r}
+# propensity score model
+psmodel <- glm(treatment ~ age + female + meanbp1 + ARF + 
+                 CHF + Cirr + colcan + Coma + lungcan + 
+                 MOSF + sepsis + aps, 
+               family = binomial(link = "logit"), 
+               data = dat)
+
+# value of propensity score for each subject
+ps <- predict(psmodel, type = "response")
+```
+
+---
+class: middle
+
+## Results from the PS model
+
+.small[
+```r
+Coefficients:
+             Estimate Std. Error z value Pr(>|z|)    
+(Intercept) -1.946015   0.232129   -8.38  < 2e-16 ***
+*age         -0.003047   0.001746   -1.74  0.08101 .  
+*female      -0.139077   0.059014   -2.36  0.01844 *  
+*meanbp1     -0.007517   0.000871   -8.63  < 2e-16 ***
+*ARF          1.225293   0.149551    8.19  2.5e-16 ***
+*CHF          1.890564   0.173569   10.89  < 2e-16 ***
+Cirr         0.433406   0.220337    1.97  0.04918 *  
+colcan       0.048157   1.124289    0.04  0.96583    
+*Coma         0.684254   0.187833    3.64  0.00027 ***
+lungcan      0.198460   0.505500    0.39  0.69461    
+*MOSF         1.017780   0.180716    5.63  1.8e-08 ***
+*sepsis       1.840246   0.156159   11.78  < 2e-16 ***
+*aps          0.018236   0.001729   10.55  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 7621.4  on 5734  degrees of freedom
+Residual deviance: 6869.2  on 5722  degrees of freedom
+AIC: 6895
+
+Number of Fisher Scoring iterations: 4
+```
+]
+
+???
+You probably will be interested on which variables are associated with receiving the treatment in the data.
 
 
 ---
