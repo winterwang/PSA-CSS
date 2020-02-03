@@ -1578,7 +1578,8 @@ class: middle
 ```{r message=FALSE, cache=TRUE}
 # load packages
 library(tableone)
-{{library(sandwich)}} # for robust variance estimation
+ # for robust variance estimation
+{{library(sandwich)}}
 {{library(ipw)}}
 {{library(survey)}}
 
