@@ -1,0 +1,1885 @@
+---
+title: "Propensity Score Analysis (PSA) -- Day 1"
+# subtitle: "why we use it and what does it provide"
+author: 
+    Chaochen Wang (CWAN) <br>
+    Thomas Laurent (TLAU)
+date: "2019-12-13 17:00~18:00 @CSS"
+output:
+  xaringan::moon_reader:
+    css: xaringan-themer.css
+    lib_dir: libs
+    nature:
+      countdown: 60000
+      highlightStyle: github
+      highlightLines: true
+      highlightSpans: true
+      countIncrementalSlides: false
+---
+
+
+class: middle
+# Objectives
+
+- Revision about causal inference framework and terminologies.
+
+- Introduction of Propensity Score Analysis (PSA).  
+
+- Understand the **pre-assumptions** that required for PSA.
+
+- How to test for unobserved confounders? <br>(by TLAU)
+
+- Discuss the ways of using Propensity Scores. 
+
+<!-- - Understand that PSA is **not omnipotent** -->
+
+???
+
+
+---
+class: middle, center, inverse
+
+## Some background before PSA
+
+
+---
+class: middle
+
+## What do we mean by <br>"causal inference"? (1)
+
+
+- Most data analysis in medical research (or in other area) has a central aim - to learn about **cause-effect relationships**. 
+
+    - Does the treatment work? 
+    - How harmful is the exposure? 
+    - How effective would the policy be and why?
+    
+    
+---
+class: middle
+
+## What do we mean by <br>"causal inference"? (2)
+
+- Randomised studies are **randomised** precisely to make causal inference more reliable. 
+
+- When randomisation is not feasible, we still wish to make inferences about effects of causes. 
+
+- However, most medical studies can only be interpreted as *"associations"* rather than causal effect. 
+
+
+---
+class: middle
+
+## Example
+
+
+Anaemic patients undergoing hip replacement operation might benefit from receiving an **intravenous iron supplement** prior to surgery. 
+
+- Data collected in one hospital on all anaemic patients undergoing a hip replacement operation between 2009 and 2014. 
+
+- $X$:  **intravenous iron supplement**, yes or no
+- $Y$: 90 days survival after operation, alive or dead
+
+---
+class: middle 
+
+### Other data collected in the example: 
+
+- Age, gender, co-morbidities (CVD, diabetes, renal disease);
+
+- Severity of anaemia;
+
+- Operation types;
+
+- Whether or not transfusion needed during operation;
+
+- Length of stay in hospital;
+
+---
+class: middle
+
+## Traditional Approach - crude 
+
+- We start by looking at a 2 $\times$ 2 table:
+
+
+```{r echo=FALSE, message=FALSE}
+library(tidyverse)
+options(digits=5)
+my_tbl <- tibble::tribble(
+~cc, ~c0,  ~X0, ~X1,
+  "FeIV",           0, 9206, 376,
+  "FeIV",           1, 7365, 312
+  )
+
+names(my_tbl) <- c("", "", "0", "1")
+
+require(knitr)
+require(kableExtra)
+kable_styling(
+              kable(my_tbl, digits = 3, row.names = FALSE, align = "c",
+              caption = NULL, format = "html"),
+        bootstrap_options = c("striped", "hover", "condensed"),
+        position = "center", full_width = FALSE) %>% 
+  add_header_above(c(" "= 2, "Death90" = 2)) %>% 
+  column_spec(1:2, bold = T) %>%
+  collapse_rows(1, valign = "middle")
+```
+
+
+- Estimated log odds ratio $= \log(\frac{312\times9206}{376\times7365}) = 0.04, 95\% \text{CI: } -0.12, 0.19$ 
+
+---
+class: middle
+## Traditional Approach - crude 
+
+- What are we estimating here? The **estimand**<sup>1</sup> is 
+
+$$
+\begin{aligned}
+\log\text{OR}_{Y|X} & = \log{\frac{\text{Pr}(Y = 1 | X = 1)}{1- \text{Pr}(Y = 1 | X = 1)}} \\
+                    & \;\;\;\;\;\;\;\;\; - \log{\frac{\text{Pr}(Y = 1 | X = 0)}{1- \text{Pr}(Y = 1 | X = 0)}}
+\end{aligned}
+$$
+
+.footnote[
+[1] **Estimand** is defined as the value that we we would like to know, such as "the mean BMI of the population in Japan". This is an unknown but fixed quantity.
+]
+
+---
+class: middle
+
+## Confounding
+
+- We cannot give $\log\text{OR}_{Y|X}$ a causal interpretation because there is **confounding**. 
+- It is possible that patients provided with intravenous iron were already worse off, masking a truely effect of the exposure. 
+- So the estimand changed into a **conditional logOR**: 
+
+
+$$
+\begin{aligned}
+\log\text{OR}_{Y|X} & = \log{\frac{\text{Pr}(Y = 1 | X = 1, \textbf{C})}{1- \text{Pr}(Y = 1 | X = 1, \textbf{C})}} \\
+                    & \;\;\;\;\;\;\;\;\; - \log{\frac{\text{Pr}(Y = 1 | X = 0, \textbf{C})}{1- \text{Pr}(Y = 1 | X = 0, \textbf{C})}}
+\end{aligned}
+$$
+
+---
+class: middle
+
+## Conditioning on covariates
+
+
+- So we have some statistical variable selection procedure. 
+- Transfusion, and length of stay in hospital are on the causal pathway from $X$ to $Y$, so they were excluded from adjustment.
+- After adjustment of the other covariates, we have an estimated conditional logOR of <br> -0.24 (95% CI -0.41, -0.07)
+- WE may interpret this logOR as evidence that patients treated with iron supplement before hip replacement surgery had lower odds of dying within 90 days of operation.
+
+---
+class: middle, center
+
+## But, the conditional logOR still cannot answer our question: 
+
+
+--
+## What is the survival probability if, 
+
+--
+## **contrary to reality**, 
+
+--
+## every patient were treated with intravenous iron?
+
+
+---
+class: middle
+
+## Causal languages
+
+1. We ask the question: how $Y$ would react if we could change $X$ and assign it, **contrary to how it was actually assigned.** <br> -- potential outcomes <br>(Neyman, 1923; Rubin, D. 1974)
+
+2. $Y(x)$ is defined as the value that $Y$ would take if $X$ were (hypothetically) set to value of $x$
+
+3. Causal effect is expressed as comparisons between $Y(x)$: <br> $E\{Y(1)\} - E\{Y(0)\}$
+
+
+---
+class: middle
+
+## Potential Causal Estimands - binary outcome
+
+- Marginal causal risk difference:
+
+$$
+\text{Pr}[Y(1) = 1] - \text{Pr}[Y(0) = 1]
+$$
+
+- Conditional causal log odds ratio:
+
+$$
+\log\frac{\text{Pr}(Y(1) = 1, \textbf{C})}{1- \text{Pr}(Y(1) = 1,  \textbf{C})} - \log\frac{\text{Pr}(Y(0) = 1, \textbf{C})}{1- \text{Pr}(Y(0) = 1,  \textbf{C})}
+$$
+
+
+---
+class: middle
+
+## Potential Causal Estimands - cont. outcome
+
+- Marginal causal mean difference: 
+
+$$E\{Y(1) - Y(0)\}$$
+- Conditional causal mean difference:
+
+$$E\{Y(1) - Y(0)|\mathbf{C}\}$$
+
+They are called the **Average Causal/Treatment Effect (ACE or ATE)**. 
+
+---
+class: middle
+
+## Assumption No 1: **No Interference**
+
+- Potential value of $Y_i$, does not depend on $X_j$: 
+
+    - $i, j$, are individual indices $\approx$ independent
+
+    - we assume that a (hypothetical) exposure for individual $j$, does not change the outcome of individual $i$
+
+
+- An example of violation is in the study of vaccines, where vaccinating individual $j$ may affect the disease status of individual $i$.
+
+
+---
+class: middle
+
+## Assumption No 2: **Consistency**
+
+$$
+X_i = x \Rightarrow Y_i = Y_i(x)
+$$
+
+- For individual $i$, who actually (in the real world) received exposure $x$, their observed outcome is the same as in the hypothetical world that this individual received the same exposure $x$. 
+
+
+---
+class: middle 
+
+## Assuption No 3: <br>**Conditional Exchangeability**
+
+- This means we are so *arrogant* and 100% sure that there is **no other unmeasured confounding**.
+
+
+$$Y(x)\perp \!\!\! \perp X| \textbf{C}, \forall x$$
+
+- $\perp \!\!\! \perp$ means conditional independence; 
+    - $A\perp \!\!\! \perp B | C$ means "A is conditionally independent of B given C"
+    
+- $\forall$ means "for all", here means $x = 0, 1$
+
+
+???
+
+Conditional on $\mathbf{C}$, the actual exposure level $X$ is independent of the level of the potential outcomes.
+
+
+---
+class: middle
+
+## Identification (1): 
+
+Suppose we are interested in a conditional causal mean difference. 
+
+$$E\{Y(1) - Y(0) | \mathbf{C} = \mathbf{c}\}$$
+
+Given $\mathbf{C}$, where $\mathbf{C}$ also is a set of covariates given which we believe **conditional exchangaeability** to be plausible -- no other unmeasured confoundings.
+
+---
+class: middle
+
+## Identification (2): 
+
+
+$$\begin{aligned}E\{Y(1) - Y(0) | \mathbf{C} = \mathbf{c}\} & = E\{Y(1)| \mathbf{C} = \mathbf{c}\} \\
+&\;\;\;\;\;- E\{Y(0)| \mathbf{C} = \mathbf{c}\} \\
+& =  E\{Y(1)| \color{red}{X = 1}, \mathbf{C} = \mathbf{c}\} \\
+&\;\;\;\;\;- E\{Y(0)| \color{red}{X = 0}, \mathbf{C} = \mathbf{c}\}\\
+& (\text{conditional exchangeability}) \\ 
+& =  E\{\color{red}{Y}| X = 1, \mathbf{C} = \mathbf{c}\} \\
+&\;\;\;\;\;- E\{\color{red}{Y}| X = 0, \mathbf{C} = \mathbf{c}\} \\
+& (\text{by consistency}) \\ 
+\end{aligned}$$
+
+???
+
+These steps are extremely important, 
+under the assumptions of conditional exchangeability, consistency, we have rewritten our causal estimand -- unobservable potential outcomes -- into the observed data.
+
+---
+class: middle
+
+## Assumptions linked between <br> causal estimand and observed data
+
+These steps are extremely important, 
+under the assumptions of conditional exchangeability, consistency, we have rewritten our causal estimand 
+
+-- unobservable potential outcomes -- 
+
+into the observed data.
+
+
+---
+class: middle 
+
+## Estimation using linear regression
+
+Suppose
+
+$$E\{Y|x = 1, \mathbf{C} = \mathbf{c}\} - E\{Y|x = 0, \mathbf{C} = \mathbf{c}\}$$
+
+is the same for every $\mathbf{c}$ (covariate), then if we fit a linear regression model:
+
+$$E(Y|X=x, \mathbf{C} = \mathbf{c}) = \alpha + \color{red}{\beta}x + \gamma^T\mathbf{c}$$
+
+--
+then the coefficient $\color{red}{\beta}$ of $X$ can be interpreted as the conditional causal mean difference, as long as the model is correctly specified. 
+
+
+---
+class: middle 
+
+### Example: <br> maternal smoking and birth weight (1)
+
+- Data is from Cattaneo <sup>1</sup> on singleton babies born in Pennsylvania between 1989 and 1991.
+
+- Outcome: birth weight, in grams
+
+- Exposure: whether or not mothers smoked during the pregnancy
+
+- n = 4642
+
+
+
+
+
+
+.footnote[
+<html><head></head><body><font face="sans-serif"><b><br>
+[1]
+ Cattaneo, M. D.
+
+ Efficient semiparametric estimation of multi-valued treatment effects under ignorability 
+
+ <em>Journal of Econometrics, </em>
+
+
+
+ <em>Elsevier, </em>
+<b>2010</b><i>, 155</i>, 138-154 
+
+
+<p></p></font></body></html>
+]
+
+
+---
+class: middle
+### Example: <br> maternal smoking and birth weight (2)
+
+We think there are only 3 confounders:
+
+- maternal age, 
+- whether the baby is the first child,
+- first clinical visit at which trimester. 
+
+---
+class: middle
+
+### One possible linear regression model is:
+
+.small[
+```{r echo=T}
+cattaneo2 <- haven::read_dta("data/cattaneo2.dta")
+Cat_mod <- lm(bweight ~ as.factor(mbsmoke) + mage + 
+                as.factor(fbaby) + as.factor(prenatal), 
+              data = cattaneo2)
+broom::tidy(Cat_mod, conf.int = TRUE) %>% 
+  knitr::kable(.)
+```
+]
+
+---
+class: middle
+### Example: <br> maternal smoking and birth weight (3)
+
+- Under assumptions of No Interference (NI),  Consistency (C), Conditional Exchangeability (CE) <br> and, **the model is correctly specified** 
+
+- The estimate $\beta = -252.2599$ can be given a **causal intepretation**: the expected difference in birth weight, conditional on three confounders, comparing a hypothetical situation in which: <br> <br> **all mothers smoke** versus a different hypothetical situation in which **no mothers smoke**
+
+
+???
+
+Under the assumptions, for a mother of a given age, first baby status, and timing of first clinical visit, we expect that the baby would be on average 252.3 grams lighter if the mother were hypothetically forced/randomised to smoking, versus if she were hypothetically prevented from smoking. 
+
+---
+class: middle
+
+Under the assumptions, for a mother of a given age, first baby status, and timing of first clinical visit, we expect that the baby would be on average 252.3 grams lighter if the mother were **hypothetically forced/randomised to smoking**, versus if she were **hypothetically prevented from smoking**. 
+
+
+---
+class: middle
+
+## Propensity score analysis (PSA)
+
+
+- PSA make assumptions under the framework of causal inference: <br>No Interference (NI),  Consistency (C), Conditional Exchangeability (CE) 
+
+--
+- Plus, the (unknown) propensity score is appropriately modelled using the data.
+
+
+--
+- Instead of modelling $E(Y|X, \mathbf{C})$, we specify the form of $E(X| \mathbf{C})$
+
+
+---
+class: middle 
+
+## Propensity score (1)
+
+- The propensity score $p(\mathbf{C})$, is the conditional probability that $X = 1$ given $\mathbf{C}$
+
+$$
+p(\mathbf{C}) = p(X = 1 | \mathbf{C})
+$$
+
+- A **scalar**, irrespective of the dimension of $\mathbf{C}$
+
+
+- Rosenbaum and Rubin <sup>1</sup> showed that if conditional exchangeability holds given $\mathbf{C}$, then it also holds given $p(\mathbf{C})$:
+
+$$Y(x)\perp \!\!\! \perp X| \textbf{C}, \forall x
+\Rightarrow Y(x)\perp \!\!\! \perp X| \color{red}{p(\textbf{C})}, \forall x$$
+
+
+.tiny[
+[1] <html><head></head><body><font face="sans-serif"> Rosenbaum, P. R. &amp; Rubin, D. B. The central role of the propensity score in observational studies for causal effects
+ <em>Biometrika, </em>
+ <em>Oxford University Press, </em>
+<b>1983</b><i>, 70</i>, 41-55 
+
+
+<p></p></font></body></html>
+]
+
+
+---
+class: middle
+
+## Propensity score (2)
+
+- In practice,  $p(\mathbf{C})$ must be estimated by fiting a logistic regression of $X$ on $\mathbf{C}$; 
+
+- The **predicted values** from the logistic model are the individual propensity scores. 
+
+- The validity of methods based on propensity scores relies on **correctly modelling** $E(X| \mathbf{C})$
+
+
+---
+class: middle
+
+## Propensity score (3)
+
+- If an exposed and unexposed person have the same value of $p(\mathbf{C})$, say 0.25, it means they were equally likely to have received the exposure. 
+
+- This is **similar as** in a randomised trial, an exposed and unexposed subject with the same $p(\mathbf{C})$ are exchangeable. Unless: 
+
+  - Important confounders were not included in $p(\mathbf{C})$; 
+  - $p(\mathbf{C})$ was incorrectly modelled. 
+
+
+---
+class: middle
+
+## Example: RFA dataset (1)
+
+--
+- 3351 patients with metastatic lung cancer were given either standard surgery (n = 1848) or radiofrequency ablation (RFA) (n = 1703) to remove metastatic lung cancer nodules. 
+
+--
+- 3-year progression-free survival is higher (79.2% versus 67.9%) for those who received RFA. 
+
+--
+- But confounding is a concern: larger modules cannot be removed by RFA, so at least some of the apparent protective effect of RFA is likely due to RFA given to patients **with already better prognosis**.
+
+
+---
+class: middle
+
+## Example: RFA dataset (2)
+
+- Potential confounders: age, gender, hospital (1,2,3,4), smoking (non, ex, current), nodules numbers, no. other metastatic sites, duration of disease, diameter of largest module, location of primary cancer (bladder, breast, bowel, gullet, kidney, skin, stomach....), modules can be reached easily (easy, moderate, difficult) 
+
+---
+class: middle
+
+## Example: RFA dataset (3)
+
+- Propensity score model: 
+
+
+.small[
+$$
+\begin{aligned}
+\text{logit}\{ \text{Pr(RFA}|\mathbf{C} )\}  = & \beta_0 + \beta_1\text{age} + \beta_2 \text{gender}+ \beta_3I(\text{hospital = 2}) \\
+& +\beta_4I(\text{hospital =3}) + \beta_5I(\text{hospital = 4}) \\
+& + \beta_6I(\text{smoke = 2} ) + \beta_7I(\text{smoke = 3}) + \beta_8\text{nodules}\\
+&  + \beta_9\text{mets} + \beta_{10}\text{duration}+ \cdots  + \beta_{20}I(\text{primary = 9})\\
+&  + \beta_{21}I(\text{position = 2}) + \beta_{22}I(\text{position = 3})
+\end{aligned}
+$$
+]
+
+- $p(\mathbf{C})$ is estimated from this $\uparrow$ model for every patient.
+
+
+---
+class: middle
+
+### The PS model estimates: 
+
+
+.med[
+```{r echo=FALSE}
+RFAcat <- haven::read_dta("data/RFAcat.dta")
+RFAcat <- RFAcat %>%
+  mutate(gender = as.factor(gender), 
+         smoke = as.factor(smoke),
+         hospital = as.factor(hospital),
+         primary = as.factor(primary),
+         position = as.factor(position))
+Pros_Score <- glm(rfa ~ age + gender + smoke + hospital + nodules + mets + 
+                    duration + maxdia + primary + position, family = binomial(link = logit), 
+                  data = RFAcat)
+# summary(Pros_Score)
+broom::tidy(Pros_Score, exp = FALSE, conf.int = TRUE) %>% 
+    # mutate(p.value = cell_spec(p.value), color = ifelse(p.value < 0.05, "red", "blue")) %>%
+  knitr::kable(.) %>% 
+    kable_styling(bootstrap_options = "striped", position = "center") %>%
+    row_spec(c(6:8, 12, 18, 21:22), bold = T, color = "white", background = "#D7261E") %>% 
+  scroll_box(width = "780px", height = "400px")
+
+```
+]
+
+
+???
+
+As expected, hospital, diameter of largest nodule, and position of the nodule are strong predictors of the treatment. 
+
+
+---
+class: inverse
+background-image: url("./fig/scoreoverlap.png")
+background-position: 50% 50%
+background-size: contain
+
+```{r propscore00, echo=FALSE, fig.height=6, fig.width=8, fig.cap='', fig.align='center', out.width='100%', message=FALSE, warning=FALSE, eval=FALSE}
+RFAcat$Score <- Pros_Score$fitted.values
+ggthemr::ggthemr('fresh', layout = 'scientific')
+RFAcat %>%
+  ggplot(aes(x = Score, y= ..density.., fill = as.factor(rfa))) + 
+  geom_histogram(position = "identity", color = "black", alpha = 0.5) +
+  geom_density(alpha = 0.2) +
+  theme(axis.title = element_text(size = 17), axis.text = element_text(size = 14),
+        axis.line = element_line(colour = "black"),
+    panel.border = element_blank(),
+    panel.background = element_blank()) +
+  ggtitle("Density and histogram of the estimated \npropensity score in the two exposure groups.") +
+ theme(title = element_text(size = 20),
+       plot.title = element_text(hjust=0.5),
+  legend.text = element_text(size = 19), 
+  legend.title = element_text(size = 19),
+  legend.position = "bottom", legend.direction = "horizontal") +
+  labs(fill = "Treatment Methods") + 
+  scale_fill_discrete(labels = c("Standard surgery", "RFA")) 
+ggthemr::ggthemr_reset()
+```
+
+
+---
+class: middle
+
+## How do we use the propensity scores?
+
+- If controlling $\mathbf{C}$ is deemed sufficient, then controlling for $p(\mathbf{C})$ is also sufficient. 
+
+- $p(\mathbf{C})$ is a scalar, so controlling for it is much easier than controlling for $\mathbf{C}$.
+
+- Ways of using the propensity scores include: 
+  - stratification;
+  - adjustment;
+  - matching;
+  - re-weighting (inverse-weighting).
+
+
+---
+class: middle
+
+### Stratification (1)
+
+If we subclassifying the patients according to quartiles of $\hat{p}(\mathbf{C})$: 
+
+.small[
+| PS subclasses | Treatment | N of patients | Prob of death or <br>disease progression (%) | Risk difference (%) |
+|:-------------:|:---------:|:-------------:|:--------------------------------------------:|:-------------------:|
+|       1       |  Standard |      788      |                     37.9                     |         13.1        |
+|               |    RFA    |      100      |                     51.0                     |                     |
+|       2       |  Standard |      547      |                     30.7                     |         6.0         |
+|               |    RFA    |      341      |                     36.7                     |                     |
+|       3       |  Standard |      344      |                     25.6                     |         -4.8        |
+|               |    RFA    |      544      |                     20.8                     |                     |
+|       4       |  Standard |      169      |                     22.5                     |        -13.4        |
+|               |    RFA    |      718      |                      9.1                     |                     |
+]
+
+---
+class: middle
+
+### Stratification (2)
+
+- Our suspicion of confounding is seen clearly, the probability of death or disease progression is higher in the lower categories of the propensity score. 
+
+- There is effect modification by the propensity score. RFA is better than standard surgery only in the upper two propensity score subclasses. 
+
+- The doctors are making choices for their patients. RFA are more likely to be given to patients who can benefit from the treatment.
+
+
+---
+class: middle
+
+### Estimating  $E\{Y(1) - Y(0)\}$ <br> (average causal/treatment effect, ACE)
+
+
+The ACE can be estimated as the simple (unweighted) average of the 4 stratum-specific effects:
+
+
+$$
+\widehat{\text{ACE}} = \frac{13.1 + 6.0 - 4.8 - 13.4}{4} = 0.2 \%
+$$
+
+---
+class: middle
+
+### Estimating $E\{Y(1) - Y(0) | X = 1\}$ <br> (average treatment effect on the **treated**, ATT)
+
+
+.between[
+| PS subclasses | Treatment | N of patients | Prob of death or <br>disease progression (%) | Risk difference (%) |
+|:-------------:|:---------:|:-------------:|:--------------------------------------------:|:-------------------:|
+|       1       |  Standard |      788      |                     37.9                     |         13.1        |
+|               |    RFA    |      **100**      |                     51.0                     |                     |
+|       2       |  Standard |      547      |                     30.7                     |         6.0         |
+|               |    RFA    |      **341**      |                     36.7                     |                     |
+|       3       |  Standard |      344      |                     25.6                     |         -4.8        |
+|               |    RFA    |      **544**      |                     20.8                     |                     |
+|       4       |  Standard |      169      |                     22.5                     |        -13.4        |
+|               |    RFA    |      **718**      |                      9.1                     |                     |
+]
+
+.small[
+$$
+\widehat{\text{ATT}} = \frac{-13.1 \times 100 + 6.0 \times 341 - 4.8 \times 544 - 13.4\times718}{100 + 341 + 544 + 718} = -5.2\%
+$$
+]
+
+???
+
+The results shows that RFA is beneficial to those who tend to get the treatment (consistent with the effect modification)
+
+
+---
+class: middle, center
+
+# Hold on,
+
+--
+# Before we move on to other methods of using the PS. 
+
+--
+# We should bear in mind that we assumed the model for PS generation was correctly chosen. 
+
+---
+class: middle, center
+
+## Other than that, 
+
+--
+## we also assumed that **all confounders** were included 
+
+--
+## plus, some people may believe including non-confounders but predictive of the X is beneficial for precision. 
+
+
+---
+class: middle
+
+
+## Finally,
+
+--
+## How do we know if there is any other un-observed confounders?
+
+
+
+
+---
+class: middle
+## Check for un-observed confounders (1)
+
+- Researchers should routinely test for residual confounding or **endogeneity** (even after PS matching). <br>
+This can be done using residuals of the PS model.
+
+.med[
+$$
+\begin{aligned}
+\text{logit}\{ \text{Pr(RFA}|\mathbf{C}) \} & =  \beta_0 + \beta_1\text{age} + \dots + \color{red}{\epsilon}
+\end{aligned}
+$$
+]
+
+
+---
+class: middle
+## Check for un-observed confounders (2)
+
+- If the outcome equation is as follows (linear model here for illustration), where $\nu$ is the residuals.
+
+.med[
+$$
+\begin{aligned}
+Y & =  \alpha_0 + \alpha_1\text{age} + \dots + \color{red}{\nu}
+\end{aligned}
+$$
+]
+
+- The following assumption should hold 
+
+$$\small{cor(\text{logit}\{ \text{Pr(RFA}|\mathbf{C}) \},\nu)=cor(\epsilon,\nu)=0}$$
+
+
+---
+
+class: middle
+
+## Hausman test (Endogeneity test)
+
+- Null hypothesis is as follows: 
+
+$$\small{cor(\text{logit}\{ \text{Pr(RFA}|\mathbf{C} )\},\nu)=cor(\epsilon,\nu)=0}$$
+
+- Equivalent to test $\color{blue}{\delta}=0$ in the following equation (using usual tests):
+
+$$
+\begin{aligned}
+Y =  \alpha_0 + \alpha_1\text{age} + ...+\color{blue}{\delta} \epsilon +\color{red}{\nu}
+\end{aligned}
+$$
+
+
+---
+class: middle
+
+## Alternative #1: (1)<br> Differences-in-Differences methods
+
+Other than fitting models to calculate propensity scores, we may do the following:
+<!-- to propensity score based methods -->
+
+- Non-parametric alternative
+
+- Require 2 periods in a same patient: 
+
+1.  A baseline period in the same period when neither the intervention nor the comparator are observed
+2.  A period the intervention or the comparator is attributed
+
+
+---
+class: middle
+
+## Alternative #1: (2)
+
+- The outcome equations for the respective periods are:
+
+
+$$
+\begin{aligned}
+Y_{i1} & =  B_0 + B_1 X_{i1}+\mathbf{B_2 \lambda_{i}} +\epsilon_{i1} \\
+Y_{i2} & = B_0 + B_1 X_{i2}+\mathbf{B_2 \lambda_{i}} + \color{red}{B_3 T_i}+\epsilon_{i2}
+\end{aligned}
+$$
+
+
+- The effect for each patient is estimated as follows:
+
+$$Y_{i2}-Y_{i1} = B_1(X_{i2}-X_{i1})+B_3T_i+(\epsilon_{i2}-\epsilon_{i1})$$
+
+
+---
+class: middle
+
+### Pros
+
+- remove unobserved fixed effects
+
+- instrumental variables are not required
+
+- possibility to combine DID with PS matching (**Heckman et al.**)
+
+### Cons
+
+- DID estimator interpretation is not clear in the presence of within-treatment heterogeneity (differential effect in subgroups of non-observed characteristics)
+
+---
+class: middle
+
+## Alternative #2: Endogenous switching regression (Econometric approach)
+
+
+- Use in practice when heterogeneity is observed
+
+- Compared to propensity score model, the selection process is modeled and counterfactuals are considered to estimate the effects
+
+- ATE (average treatment effect), ATT, **ATU** (Average treatment effect on untreated population), heterogeneity for each outcome
+
+
+
+---
+class: middle
+
+## Definitions of the different effects
+
+- Average treatment among the untreated
+
+.med[
+$$
+ATU: E(Y(1) - Y(0)|\mathbf{X,W=0})
+$$
+]
+
+- Effect of heterogeneity in the treated
+
+.med[
+$$
+BH1: E(Y(0)|\mathbf{X,W=1})-E(Y(0)|\mathbf{X,W=0})
+$$
+]
+
+- Effect of heterogeneity in the untreated
+
+.med[
+$$
+BH2: E(Y(1)|\mathbf{X,W=1})-E(Y(1)|\mathbf{X,W=0})
+$$
+]
+
+---
+class: middle
+
+### General model framework (1)
+
+- The selection process is based on the estimation of utility:
+
+$A_i^{*}=Z_i\alpha+\eta_i$ **(1)**, with $Z_i$ as observed variables (at least one instrument is required)
+
+.small[
+$$
+A_i=
+\begin{cases}
+1 & \text{ if } A_i^{*}>0\\
+0 & \text{otherwise}
+\end{cases}
+$$
+]
+
+---
+class: middle
+
+### General model framework (2)
+
+- In a second step, a switching regression model **(2)** is estimated for each subpopulation $A_i$:
+
+
+$$
+\begin{aligned}
+Y_{1i} & =  X_{1i}\beta_1+\epsilon_{1i} \\
+Y_{0i} & =  X_{0i}\beta_0+\epsilon_{0i}
+\end{aligned}
+$$
+
+- Correlations between residuals in **(1)** and **(2)** are nonzero (presence of heterogeneity).
+
+$$
+Cor(\eta,\epsilon) \neq 0
+$$
+
+
+---
+class: middle
+
+### Pros
+
+- Assessment of ATU and BH effects: policy/intervention on untreated and heterogeneity might be important in decision-making
+
+- Control for both the structural relationships of the covariates with outcomes, and the sample composition of both groups
+
+### Cons
+
+- Difficult to find a good instrument in practice (variable included in the selection process not related to the outcome directly)
+
+
+
+---
+class: middle, center 
+
+# The end for the first day
+
+## slide address: https://wangcc.me/PSA-CSS
+
+
+---
+class: middle, center, inverse
+
+# Propensity Score Analysis (PSA) -- Day 2
+### Chaochen Wang (CWAN) <br> Thomas Laurent (TLAU)
+
+### 2020-2-14 (tentative) 16:00~17:00 @CSS
+
+
+---
+class: middle
+
+# Recap
+
+We discussed about:
+
+- the causal inference framework under which that PSA was designed for; 
+
+- the assumptions required when consider using the PSA;
+
+    - No interference, Consistency, Conditional Exchangeability
+
+- ATE calculated through a stratification procedure. 
+
+---
+class: middle
+
+# Today 
+
+We will try to cover: 
+
+- Adjusting for PS in the model; 
+
+- Matching participants by PS; 
+
+- Inversely weighting the participants by their PS;
+
+- Cautions and best guidelines to follow when reporting studies used PS. 
+
+---
+class: middle
+
+## Regression Adjustment
+
+- Another approach of using PS is to **adjust** for the propensity score in a regression model.
+
+$$E\{Y|X, p(\mathbf{C})\} = \alpha + \color{red}{\beta} X + \gamma p(\mathbf{C})$$
+
+
+- $\color{red}{\beta}$ potentially has a **causal (conditional) interpretation**
+
+    - because if conditional exchangeability holds given $\mathbf{C}$ then it also holds given $p(\mathbf{C})$
+    
+- $\gamma$ is now one-dimensional so, **finite sample bias** would no longer be a problem.
+
+
+  
+---
+class: inverse
+background-image: url("./fig/adjustment.png")
+background-position: 50% 50%
+background-size: contain
+
+
+???
+
+finite sample bias is no longer a concern for propensity score adjustment as the number of covariates increases. 
+
+
+---
+class: middle
+
+## Matching on the estimated PS
+
+Matching on the PS means we take one patient who recieved RFA and find one (or more than one) match for him/her *with replacement* from those who recieved standard surgery but with a similar value of PS.
+
+- To estimate **average treatment effect in the treated (ATT)**;
+
+
+- If we start matching with those who recieved standard surgery, this will be an estimate of the **average treatment effect in the untreated (ATU)**.
+
+
+---
+class: middle
+
+## Matching methods
+
+- nearest neightbour matching
+
+- within calipers method (Mahalanobis metric matching)
+
+- etc.
+
+- Problem of **poor overlap (or lack of positivity)** is immediately flagged up when some individuals fail to be mached. 
+
+---
+class: middle
+
+## Balance diagnostics after matching
+
+- [Standardized mean difference (SMD)](https://cran.r-project.org/web/packages/tableone/vignettes/smd.html) is mostly used: 
+
+$$SMD = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{(\hat{\sigma_1}^2 + \hat{\sigma_2}^2)/2}} <0.1$$
+
+- For dichotomous variables and categorical variable, see reference <sup>1</sup>: 
+
+.between[
+Yang DS, Dalton JE. A Unified Approach to Measuring the Effect Size Between Two Groups Using SAS. SAS Global Forum 2012. paper 335
+]
+
+---
+class: middle
+
+## Inverse probability weighting (1)
+
+- The propensity scores we have calculated are the **conditional probabilities** - based on all of the confounders we have found and included - that the individuals will be exposed. 
+
+- So there are some individuals, who, condition on their confounders, are more or less likely to be exposed. 
+
+---
+class: middle 
+
+## Inverse probability weighting (2)
+
+- If we found that someone in the study, condition on her/his all available confounders, was **unlikely** to be exposed to the intervention (treatment), $p(\mathbf{C})$ is small.
+
+--
+- We may consider **upweight** him/her, so that (s)he represents him/her and also many other who may like him/her who were unlikely to be unexposed.
+
+--
+- Then we will have a re-weighted dataset in which $\mathbf{X}$ (exposure), and $p(\mathbf{C})$ are independent, but everything else is unchanged. 
+
+
+---
+class: middle 
+
+## Simple example (1)
+
+- Suppose the counterfactual data are:
+
+|      Group     | A | A | A | B | B | B | D | D | D |
+|:--------------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Response $Y(1)$: | 1 | 1 | 1 | 2 | 2 | 2 | 3 | 3 | 3 |
+| Response $Y(0)$: | 0 | 0 | 0 | 1 | 1 | 1 | 2 | 2 | 2 |
+
+- Even without fitting any model, we can tell that the average treatment effect (ATE) is 1. 
+
+---
+class: middle
+
+## Simple example (2)
+
+- However, we can only observe (in the real world under consistency):
+
+|     Group    |  A |  A |  A |  B |  B |  B |  D |  D |  D |
+|:------------:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+|  Exposed $Y$:  |  1 |  1 | NA | NA |  2 | NA |  3 | NA | NA |
+| Unexposed $Y$: | NA | NA |  0 |  1 | NA |  1 | NA |  2 |  2 |
+
+
+- The estimated average treatment effect (ATE) is <br> 7/4 - 6/5 = 0.55, **(hugely biased)**
+
+
+---
+class: middle
+
+## Weighting to reduce bias (IPTW)
+
+- The probability of recieving treatment: 
+
+  - 2/3 in group A; 
+  - 1/3 in group B;
+  - 1/3 in group D.
+
+- Calculate weighted average <br> (by **1/{Probability of observed treament}**)
+
+
+.small[
+$$\frac{(1 + 1) \times \frac{3}{2} + (2) \times \frac{3}{1} + (3) \times \frac{3}{1}}{\frac{3}{2} + \frac{3}{2} + \frac{3}{1} + \frac{3}{1}} \\ \;\;\;\;- \frac{(0) \times \frac{3}{1} + (1 + 1) \times \frac{3}{2} + (2 + 2) \times \frac{3}{2}}{\frac{3}{1} + \frac{3}{2}+ \frac{3}{2}+ \frac{3}{2}}= 2-1 = 1$$
+]
+
+---
+class: middle
+
+## **I**nverse **P**robability of **T**reatment **W**eighting (IPTW)
+
+- IPTW successfully removed the bias by creating a "fake" population where we 'observe' each subject at each exposure level.
+
+- It can be proved that IPTW can provide consistent estimators. 
+
+---
+class: middle
+
+## IPTW conditioning on binary confounder C (1)
+
+.pull-left[
+- Observed data: 
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+</style>
+<table class="tg">
+  <tr>
+    <th class="tg-9d8n"></th>
+    <th class="tg-9d8n" colspan="2">Y = 1</th>
+    <th class="tg-9d8n" colspan="2">Y = 0</th>
+  </tr>
+  <tr>
+    <td class="tg-9d8n"></td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 1</td>
+    <td class="tg-p0ii">180</td>
+    <td class="tg-9d8n">200</td>
+    <td class="tg-p0ii">600</td>
+    <td class="tg-9d8n">200</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 0</td>
+    <td class="tg-p0ii">20</td>
+    <td class="tg-9d8n">200</td>
+    <td class="tg-p0ii">200</td>
+    <td class="tg-9d8n">600</td>
+  </tr>
+</table>
+]
+
+
+
+.pull-right[
+- Table of $\color{red}{P(X|C)}$ 
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+</style>
+<table class="tg">
+  <tr>
+    <th class="tg-9d8n"></th>
+    <th class="tg-9d8n" colspan="2">Y = 1</th>
+    <th class="tg-9d8n" colspan="2">Y = 0</th>
+  </tr>
+  <tr>
+    <td class="tg-9d8n"></td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 1</td>
+    <td class="tg-p0ii">0.780</td>
+    <td class="tg-9d8n">0.333</td>
+    <td class="tg-p0ii">0.780</td>
+    <td class="tg-9d8n">0.333</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 0</td>
+    <td class="tg-p0ii">0.220</td>
+    <td class="tg-9d8n">0.667</td>
+    <td class="tg-p0ii">0.220</td>
+    <td class="tg-9d8n">0.667</td>
+  </tr>
+</table>
+
+]
+
+Where, $0.780 = (180 + 600)/(180 + 600 + 20 + 200)$
+
+
+---
+class: middle 
+## IPTW conditioning on binary confounder C (2)
+
+- Dividing each cell count by $\color{red}{P(X|C)}$ 
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+</style>
+<table class="tg">
+  <tr>
+    <th class="tg-9d8n"></th>
+    <th class="tg-9d8n" colspan="2">Y = 1</th>
+    <th class="tg-9d8n" colspan="2">Y = 0</th>
+  </tr>
+  <tr>
+    <td class="tg-9d8n"></td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 1</td>
+    <td class="tg-p0ii">180/0.78 <br>= 231</td>
+    <td class="tg-9d8n">200/0.333 <br>= 600</td>
+    <td class="tg-p0ii">600/0.78 <br>= 769</td>
+    <td class="tg-9d8n">200/0.333 <br>= 600</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 0</td>
+    <td class="tg-p0ii">20/0.22 <br>= 91</td>
+    <td class="tg-9d8n">200/0.667 <br>= 300</td>
+    <td class="tg-p0ii">200/0.22 <br>= 909</td>
+    <td class="tg-9d8n">600/0.667 <br>= 900</td>
+  </tr>
+</table>
+
+---
+class: middle
+## IPTW conditioning on binary confounder C (3)
+
+- The impact of inverse weighting by $\color{red}{P(X|C)}$ is to create a pseudo(fake)-population where we 'observe' each subject at each exposure level: 
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;border-width:1px;border-style:solid;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-p0ii{background-color:#f9f9f9;font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-390v{background-color:#f8ff00;font-size:22px;border-color:inherit;text-align:left;vertical-align:top}
+.tg .tg-9d8n{font-size:22px;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+.tg .tg-ovs6{font-size:22px;background-color:#f8ff00;border-color:inherit;text-align:left;vertical-align:top}
+</style>
+<table class="tg">
+  <tr>
+    <th class="tg-9d8n"></th>
+    <th class="tg-9d8n" colspan="2">Y = 1</th>
+    <th class="tg-9d8n" colspan="2">Y = 0</th>
+    <th class="tg-0pky"></th>
+    <th class="tg-0pky"></th>
+  </tr>
+  <tr>
+    <td class="tg-9d8n"></td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+    <td class="tg-p0ii">C = 1</td>
+    <td class="tg-9d8n">C = 0</td>
+    <td class="tg-390v">C = 1</td>
+    <td class="tg-ovs6">C = 0</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 1</td>
+    <td class="tg-p0ii">231</td>
+    <td class="tg-9d8n">600</td>
+    <td class="tg-p0ii">769</td>
+    <td class="tg-9d8n">600</td>
+    <td class="tg-390v">1000</td>
+    <td class="tg-ovs6">1200</td>
+  </tr>
+  <tr>
+    <td class="tg-9d8n">X = 0</td>
+    <td class="tg-p0ii">91</td>
+    <td class="tg-9d8n">300</td>
+    <td class="tg-p0ii">909</td>
+    <td class="tg-9d8n">900</td>
+    <td class="tg-390v">1000</td>
+    <td class="tg-ovs6">1200</td>
+  </tr>
+</table>
+
+---
+class: middle
+
+# PS matching and IPTW example - data
+
+- Right heart catheterization data
+
+- We can download the data from : [http://biostat.mc.vanderbilt.edu/wiki/Main/DataSets](http://biostat.mc.vanderbilt.edu/wiki/pub/Main/DataSets/rhc.csv)
+
+- Data are from ICU patients in 5 hospitals
+
+- **Treatment**: right heart catheterization (rhc) or not
+
+- **Outcome**: death
+
+- **Confounders**: demographics, insurance, disease diagnoses, etc.
+
+
+<!-- (https://www.coursera.org/lecture/crash-course-in-causality/data-example-in-r-Ie48W) -->
+
+
+---
+class: middle
+
+## First steps <br>- load packages, read in data
+
+```{r message=FALSE, cache=TRUE}
+# load packages
+# library(tableone)
+# library(Matching)
+# 
+# # Read in data
+# load(url("http://biostat.mc.vanderbilt.edu/wiki/pub/Main/DataSets/rhc.sav"))
+```
+
+
+---
+class: middle
+
+## Second steps - create data set
+
+.med[
+```{r}
+# create a data set with just these variables, for simplicity
+library(tidyverse) # load this package if you have not
+
+dat <- rhc %>% 
+  dplyr::select(cat1, sex, death, age, swang1, meanbp1) %>% 
+  mutate(ARF = as.numeric(cat1 == "ARF"), 
+         CHF = as.numeric(cat1 == "CHF"), 
+         Cirr = as.numeric(cat1 == "Cirrhosis"), 
+         colcan = as.numeric(cat1 == "Colon Cancer"), 
+         Coma = as.numeric(cat1 == "Coma"), 
+         COPD = as.numeric(cat1 == "COPD"), 
+         lungcan = as.numeric(cat1 == "Lung Cancer"), 
+         MOSF = as.numeric(cat1 == "MOSF w/Malignancy"), 
+         sepsis = as.numeric(cat1 == "MOSF w/Sepsis"), 
+         female = as.numeric(sex == "Female"), 
+         died = as.numeric(death == "Yes"), 
+         treatment = as.numeric(swang1 == "RHC"), 
+         age = as.numeric(age), 
+         meanbp1 = as.numeric(meanbp1))
+
+```
+]
+
+
+---
+class: middle 
+
+## Continued
+
+```{r}
+# Covariates will be used: 
+xvars <- c("ARF", "CHF", "Cirr", "colcan", "Coma", "lungcan", "MOSF", 
+           "sepsis", "age", "female", "meanbp1")
+
+```
+
+### Create a Table 1
+
+```{r eval=FALSE}
+# Look at a table 1
+
+table1 <- CreateTableOne(vars = xvars, strata = "treatment", 
+                         data = dat, test = FALSE)
+
+# include standardized mean difference (SMD)
+print(table1, smd = TRUE)
+
+```
+
+
+---
+class: middle
+
+### Table 1, unmatched
+
+.small[
+```r
+                     Stratified by treatment
+                      0             1             SMD   
+  n                    3551          2184               
+  ARF (mean (SD))      0.45 (0.50)   0.42 (0.49)   0.059
+  CHF (mean (SD))      0.07 (0.25)   0.10 (0.29)   0.095
+* Cirr (mean (SD))     0.05 (0.22)   0.02 (0.15)   0.145
+  colcan (mean (SD))   0.00 (0.04)   0.00 (0.02)   0.038
+* Coma (mean (SD))     0.10 (0.29)   0.04 (0.20)   0.207
+  lungcan (mean (SD))  0.01 (0.10)   0.00 (0.05)   0.095
+  MOSF (mean (SD))     0.07 (0.25)   0.07 (0.26)   0.018
+* sepsis (mean (SD))   0.15 (0.36)   0.32 (0.47)   0.415
+  age (mean (SD))     61.76 (17.29) 60.75 (15.63)  0.061
+  female (mean (SD))   0.46 (0.50)   0.41 (0.49)   0.093
+* meanbp1 (mean (SD)) 84.87 (38.87) 68.20 (34.24)  0.455
+```
+]
+
+
+???
+
+- A few variables showed some imbalanced. (SMD > 0.1)
+
+
+---
+class: middle
+
+### Match
+
+- Greedy matching based on [Mahalanobis distance](https://ja.wikipedia.org/wiki/%E3%83%9E%E3%83%8F%E3%83%A9%E3%83%8E%E3%83%93%E3%82%B9%E8%B7%9D%E9%9B%A2) 
+
+```{r eval=FALSE}
+# do greedy matching
+greedymatch <- Match(Tr = dat$treatment, 
+                     M = 1, # 1:1
+                     X = dat[xvars])
+
+matched <- dat[unlist(greedymatch[c("index.treated", "index.control")]), ]
+matchedtab1 <- CreateTableOne(vars = xvars, strata = "treatment", 
+                              data = matched, test = FALSE)
+
+print(matchedtab1, smd = TRUE)
+```
+
+---
+class: middle
+
+### Matched data Table 1
+
+.small[
+```r
+                     Stratified by treatment
+                      0             1             SMD   
+  n                    2186          2186               
+  ARF (mean (SD))      0.42 (0.49)   0.42 (0.49)  <0.001
+  CHF (mean (SD))      0.10 (0.29)   0.10 (0.29)  <0.001
+  Cirr (mean (SD))     0.02 (0.15)   0.02 (0.15)  <0.001
+  colcan (mean (SD))   0.00 (0.02)   0.00 (0.02)  <0.001
+  Coma (mean (SD))     0.04 (0.20)   0.04 (0.20)  <0.001
+  lungcan (mean (SD))  0.00 (0.05)   0.00 (0.05)  <0.001
+  MOSF (mean (SD))     0.07 (0.26)   0.07 (0.26)  <0.001
+  sepsis (mean (SD))   0.32 (0.47)   0.32 (0.47)  <0.001
+  age (mean (SD))     60.84 (15.54) 60.77 (15.64)  0.005
+  female (mean (SD))   0.41 (0.49)   0.41 (0.49)  <0.001
+  meanbp1 (mean (SD)) 68.26 (33.23) 68.19 (34.23)  0.002
+```
+]
+
+---
+class: middle
+
+### Outcome analysis -  causal risk difference
+
+- by simply performing a paired t-test
+
+```{r echo=FALSE}
+# do greedy matching
+greedymatch <- Match(Tr = dat$treatment, 
+                     M = 1, # 1:1
+                     X = dat[xvars])
+
+matched <- dat[unlist(greedymatch[c("index.treated", "index.control")]), ]
+matchedtab1 <- CreateTableOne(vars = xvars, strata = "treatment", 
+                              data = matched, test = FALSE)
+```
+
+
+
+.med[
+```{r}
+# outcome analysis
+y_trt <- matched$died[matched$treatment == 1]
+y_con <- matched$died[matched$treatment == 0]
+
+# pairwise difference
+diffy <- y_trt - y_con
+
+# paired t-test
+t.test(diffy)
+```
+]
+
+---
+class: middle
+
+### Causal risk difference - summary
+
+- Point estimate: 0.045
+
+    - Difference in probability of death **if everyone received RHC** compared with **if no one recieved RHC** is 0.045 (i.e., higher risk of death in RHC group)
+
+- 95% CI: (0.019, 0.072)
+
+- P-value: < 0.001
+
+- don't take it too seriously, this is just for illustration, we have not controlled for all of the confounders. 
+
+---
+class: middle
+
+### McNemar test
+
+.small[
+```{r}
+# McNemar test
+
+table(y_trt, y_con)
+
+mcnemar.test(matrix(c(994, 493, 394, 305), 2, 2))
+```
+]
+
+
+---
+class: middle
+
+### McNemar test - summary
+
+- 493 + 394 pairs are discordant
+
+- 493 means when a treated person died and a control person did not
+
+- P value < 0.001 
+
+- Same conclusion from the paried t-test <br>-- treated persons were at higher risk of death
+
+
+---
+class: middle
+
+# IPTW - example using the same data
+
+- load packages, read in data
+
+```{r message=FALSE, cache=TRUE}
+# load packages
+library(tableone)
+ # for robust variance estimation
+{{library(sandwich)}}
+{{library(ipw)}}
+{{library(survey)}}
+
+# Read in data
+load(url("http://biostat.mc.vanderbilt.edu/wiki/pub/Main/DataSets/rhc.sav"))
+```
+
+---
+class: middle
+
+## Calculate the propensity score
+
+```{r echo=FALSE}
+# create a data set with just these variables, for simplicity
+library(tidyverse) # load this package if you have not
+
+dat <- rhc %>% 
+  dplyr::select(cat1, sex, death, age, swang1, meanbp1, aps1) %>% 
+  mutate(ARF = as.numeric(cat1 == "ARF"), 
+         CHF = as.numeric(cat1 == "CHF"), 
+         Cirr = as.numeric(cat1 == "Cirrhosis"), 
+         colcan = as.numeric(cat1 == "Colon Cancer"), 
+         Coma = as.numeric(cat1 == "Coma"), 
+         COPD = as.numeric(cat1 == "COPD"), 
+         lungcan = as.numeric(cat1 == "Lung Cancer"), 
+         MOSF = as.numeric(cat1 == "MOSF w/Malignancy"), 
+         sepsis = as.numeric(cat1 == "MOSF w/Sepsis"), 
+         female = as.numeric(sex == "Female"), 
+         died = as.numeric(death == "Yes"), 
+         treatment = as.numeric(swang1 == "RHC"), 
+         age = as.numeric(age), 
+         meanbp1 = as.numeric(meanbp1), 
+         aps = as.numeric(aps1))
+
+```
+
+
+
+```{r}
+# propensity score model
+psmodel <- glm(treatment ~ age + female + meanbp1 + ARF + 
+                 CHF + Cirr + colcan + Coma + lungcan + 
+                 MOSF + sepsis + aps, 
+               family = binomial(link = "logit"), 
+               data = dat)
+
+# value of propensity score for each subject
+ps <- predict(psmodel, type = "response")
+```
+
+---
+class: middle
+
+## Results from the PS model
+
+.small[
+```r
+Coefficients:
+             Estimate Std. Error z value Pr(>|z|)    
+(Intercept) -1.946015   0.232129   -8.38  < 2e-16 ***
+*age         -0.003047   0.001746   -1.74  0.08101 .  
+*female      -0.139077   0.059014   -2.36  0.01844 *  
+*meanbp1     -0.007517   0.000871   -8.63  < 2e-16 ***
+*ARF          1.225293   0.149551    8.19  2.5e-16 ***
+*CHF          1.890564   0.173569   10.89  < 2e-16 ***
+Cirr         0.433406   0.220337    1.97  0.04918 *  
+colcan       0.048157   1.124289    0.04  0.96583    
+*Coma         0.684254   0.187833    3.64  0.00027 ***
+lungcan      0.198460   0.505500    0.39  0.69461    
+*MOSF         1.017780   0.180716    5.63  1.8e-08 ***
+*sepsis       1.840246   0.156159   11.78  < 2e-16 ***
+*aps          0.018236   0.001729   10.55  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 7621.4  on 5734  degrees of freedom
+Residual deviance: 6869.2  on 5722  degrees of freedom
+AIC: 6895
+
+Number of Fisher Scoring iterations: 4
+```
+]
+
+???
+You probably will be interested on which variables are associated with receiving the treatment in the data.
+
+
+---
+class: middle 
+
+# Reading list
+
+1. 5 misunderstandings about propensity score <br> [PSに関する5つの誤解](https://healthpolicyhealthecon.com/2015/05/07/propensity-score-2/)
+
+2. Causal inference in Statistics,  [統計学における因果推論（ルービンの因果モデル）](https://healthpolicyhealthecon.com/2014/11/30/rubin_causal_model/)
+
+3. Tableone package has many useful code for tables and figures: [https://cran.r-project.org/web/packages/tableone/vignettes/smd.html](https://cran.r-project.org/web/packages/tableone/vignettes/smd.html)
+
+4. `rcbalance` package has many more matching options: [https://obsstudies.org/wp-content/uploads/2017/06/rcbalance_paper_v7r2.pdf](https://obsstudies.org/wp-content/uploads/2017/06/rcbalance_paper_v7r2.pdf)
+
+---
+class: middle 
+
+```{r,display=FALSE}
+
+library(MatchIt)
+# propensity score model
+
+dat <- rhc %>% 
+  dplyr::select(cat1, sex, death, age, swang1, meanbp1, aps1) %>% 
+  mutate(ARF = as.numeric(cat1 == "ARF"), 
+         CHF = as.numeric(cat1 == "CHF"), 
+         Cirr = as.numeric(cat1 == "Cirrhosis"), 
+         colcan = as.numeric(cat1 == "Colon Cancer"), 
+         Coma = as.numeric(cat1 == "Coma"), 
+         COPD = as.numeric(cat1 == "COPD"), 
+         lungcan = as.numeric(cat1 == "Lung Cancer"), 
+         MOSF = as.numeric(cat1 == "MOSF w/Malignancy"), 
+         sepsis = as.numeric(cat1 == "MOSF w/Sepsis"), 
+         female = as.numeric(sex == "Female"), 
+         died = as.numeric(death == "Yes"), 
+         treatment = as.numeric(swang1 == "RHC"), 
+         age = as.numeric(age), 
+         meanbp1 = as.numeric(meanbp1), 
+         aps = as.numeric(aps1))
+```
+
+# Example 1 (Correct model)
+
+```{r}
+psmodel <- glm(treatment ~ age + female + meanbp1 + ARF + 
+                 CHF + Cirr + colcan + Coma + lungcan + 
+                 MOSF + sepsis + aps,
+family = binomial(link = "logit"),
+data = dat
+)
+
+ps <- predict(psmodel, type = "response")
+
+dat["residuals"] <- residuals.glm(psmodel)
+
+dat <- dat %>%
+  mutate(id_num = 1:n())
+
+m.out <- matchit(treatment ~ age + female + meanbp1 + ARF + 
+                 CHF + Cirr + colcan + Coma + lungcan + 
+                 MOSF + sepsis + aps,
+data = dat, method = "nearest", distance = "logit", caliper = 0.2
+)
+
+```
+
+```{r,display=FALSE}
+a <- data.frame(dat$id_num, m.out$treat, m.out$weights)
+colnames(a) <- c("id_num", "trt", "weights")
+
+# datafile of matches
+b <- as.data.frame(m.out$match.matrix)
+colnames(b) <- c("matched_unit")
+b$matched_unit <- as.numeric(as.character(b$matched_unit))
+b$treated_unit <- as.numeric(rownames(b))
+# now delete matches=na
+c <- b[!is.na(b$matched_unit), ]
+c$match_num <- 1:dim(c)[1]
+
+# attach match number to large datafile
+a[c$matched_unit, 4] <- c$match_num
+a[c$treated_unit, 4] <- c$match_num
+colnames(a)[4] <- "match_num"
+
+final_dat <- dat %>%
+  dplyr::select(-id_num) %>%
+  cbind(a) %>%
+  filter(!(is.na(match_num)))
+
+```
+
+```{r,message=FALSE,warning=FALSE}
+# Hausman test
+library(survival)
+final_dat <- final_dat %>%
+  mutate(dead = ifelse(death == "No", 0, 1))
+
+outcomemodel <- survival::clogit(dead ~ age + female + meanbp1 + ARF +
+  CHF + Cirr + Coma + lungcan +
+  MOSF + sepsis + aps + strata(match_num) + residuals,
+data = final_dat
+)
+
+covariance <- diag(vcov(outcomemodel))
+covariance <- covariance[length(covariance)]
+
+coefficient <- coef(outcomemodel)[length(coef(outcomemodel))]
+
+z_stat <- coefficient / sqrt(covariance)
+p_values <- pchisq(z_stat^2, 1, lower.tail = FALSE)
+names(p_values)=NULL
+
+cat(paste0("P value: ",round(p_values,digit=4)))
+```
+
+We cannot reject the null hypothesis, and hence we cannot invalidate the absence of confounders.
+
+---
+class: middle 
+
+# Example 2 (Residual confounders - Extreme example)
+
+```{r,display=FALSE}
+# propensity score model
+
+dat <- rhc %>% 
+  dplyr::select(cat1, sex, death, age, swang1, meanbp1, aps1) %>% 
+  mutate(ARF = as.numeric(cat1 == "ARF"), 
+         CHF = as.numeric(cat1 == "CHF"), 
+         Cirr = as.numeric(cat1 == "Cirrhosis"), 
+         colcan = as.numeric(cat1 == "Colon Cancer"), 
+         Coma = as.numeric(cat1 == "Coma"), 
+         COPD = as.numeric(cat1 == "COPD"), 
+         lungcan = as.numeric(cat1 == "Lung Cancer"), 
+         MOSF = as.numeric(cat1 == "MOSF w/Malignancy"), 
+         sepsis = as.numeric(cat1 == "MOSF w/Sepsis"), 
+         female = as.numeric(sex == "Female"), 
+         died = as.numeric(death == "Yes"), 
+         treatment = as.numeric(swang1 == "RHC"), 
+         age = as.numeric(age), 
+         meanbp1 = as.numeric(meanbp1), 
+         aps = as.numeric(aps1))
+```
+
+
+
+```{r}
+#Propensity score
+psmodel <- glm(treatment ~ age,
+family = binomial(link = "logit"),
+data = dat
+)
+
+ps <- predict(psmodel, type = "response")
+
+dat["residuals"] <- residuals.glm(psmodel)
+
+dat <- dat %>%
+  mutate(id_num = 1:n())
+
+m.out <- matchit(treatment ~ age,
+data = dat, method = "nearest", distance = "logit", caliper = 0.2
+)
+
+```
+
+```{r,display=FALSE}
+a <- data.frame(dat$id_num, m.out$treat, m.out$weights)
+colnames(a) <- c("id_num", "trt", "weights")
+
+# datafile of matches
+b <- as.data.frame(m.out$match.matrix)
+colnames(b) <- c("matched_unit")
+b$matched_unit <- as.numeric(as.character(b$matched_unit))
+b$treated_unit <- as.numeric(rownames(b))
+# now delete matches=na
+c <- b[!is.na(b$matched_unit), ]
+c$match_num <- 1:dim(c)[1]
+
+# attach match number to large datafile
+a[c$matched_unit, 4] <- c$match_num
+a[c$treated_unit, 4] <- c$match_num
+colnames(a)[4] <- "match_num"
+
+final_dat <- dat %>%
+  dplyr::select(-id_num) %>%
+  cbind(a) %>%
+  filter(!(is.na(match_num)))
+
+```
+
+```{r,message=FALSE,warning=FALSE}
+# Hausman test
+library(survival)
+final_dat <- final_dat %>%
+  mutate(dead = ifelse(death == "No", 0, 1))
+
+outcomemodel <- survival::clogit(dead ~ age + strata(match_num) + residuals,
+data = final_dat
+)
+
+covariance <- diag(vcov(outcomemodel))
+covariance <- covariance[length(covariance)]
+
+coefficient <- coef(outcomemodel)[length(coef(outcomemodel))]
+
+z_stat <- coefficient / sqrt(covariance)
+p_values <- pchisq(z_stat^2, 1, lower.tail = FALSE)
+names(p_values)=NULL
+
+cat(paste0("P value: ",formatC(p_values,format="e",digits=2)))
+```
+
+In this case, we reject the null hypothesis $H_0:\delta=0$, and conclude about the presence of confounders.
+
