@@ -2297,6 +2297,439 @@ dat %&gt;%
 ```
 ]
 
+---
+class: middle
+
+## Causal relative risk 
+  
+.small[
+
+```r
+# get causal relative risk, use weighted GLM 
+glm.obj &lt;- glm(died ~ treatment, weights = weight, 
+               data = dat, family = binomial(link = log))
+# summary(glm.obj)
+betaiptw &lt;- coef(glm.obj)
+# to properly account for weighting, use asymptotic (sandwich) variance
+
+SE &lt;- sqrt(diag(vcovHC(glm.obj, type = "HC0")))
+
+# Get the point estimate and confidence intervals
+causalrr &lt;- exp(betaiptw[2])
+lrr &lt;- exp(betaiptw[2] - 1.96*SE[2])
+urr &lt;- exp(betaiptw[2] + 1.96*SE[2])
+c(causalrr, lrr, urr)
+```
+
+```
+## treatment treatment treatment 
+##    1.0455    1.0017    1.0911
+```
+]
+
+???
+because the weights in the `glm` function will make the sample size bigger than it actually was, so robust/sandwich covariance can help us to correct that. 
+
+`vcovHC` gives us robust variance-covariance matrix
+
+`diag` keep the numbers in the diagonal 
+
+then take square root to calculate the standard error.
+
+---
+class: middle
+
+## Causal risk difference 
+
+.small[
+
+```r
+# get causal risk difference, use weighted GLM 
+glm.obj &lt;- glm(died ~ treatment, weights = weight, 
+               data = dat, family = binomial(link = "identity"))
+# summary(glm.obj)
+betaiptw &lt;- coef(glm.obj)
+SE &lt;- sqrt(diag(vcovHC(glm.obj, type = "HC0")))
+
+# causal risk difference
+causalrd &lt;- betaiptw[2]
+lrd &lt;- betaiptw[2]  - 1.96*SE[2]
+urd &lt;- betaiptw[2]  + 1.96*SE[2]
+c(causalrd, lrd, urd)
+```
+
+```
+##  treatment  treatment  treatment 
+## 0.02911995 0.00094955 0.05729035
+```
+]
+
+---
+class: middle
+
+## Let's repeat using the `ipw` package
+
+.small[
+
+```r
+weightmodel &lt;- ipwpoint(exposure = treatment, 
+                        family = "binomial",
+                        link = "logit",
+                        denominator = ~ age + female + meanbp1 + ARF +
+                          CHF + Cirr + colcan + Coma + lungcan + MOSF + 
+                          sepsis + aps, data = dat)
+
+summary(weightmodel$ipw.weights)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    1.05    1.37    1.68    1.99    2.24   17.30
+```
+]
+
+
+.small[
+
+```r
+# get the density plot easily
+ipwplot(weights = weightmodel$ipw.weights, logscale = FALSE,
+        main = "Weights", xlim = c(0, 18))
+```
+
+]
+
+---
+class: inverse
+background-image: url("./fig/densityplotWeights.png")
+background-position: 50% 50%
+background-size: contain
+
+???
+this figure is showing the distribution of the weights. 
+
+
+---
+class: middle
+
+## Get causal risk difference 
+
+.small[
+
+```r
+# causal risk difference using survey designed glm
+svyglm.obj &lt;- (svyglm(died ~ treatment, 
+                      design = svydesign(~ 1, weights = ~weight, data = dat)))
+
+coef(svyglm.obj)
+```
+
+```
+## (Intercept)   treatment 
+##     0.64052     0.02912
+```
+
+```r
+confint(svyglm.obj)
+```
+
+```
+##                  2.5 %   97.5 %
+## (Intercept) 0.62405145 0.656986
+## treatment   0.00094761 0.057292
+```
+]
+
+---
+class: middle
+
+## Truncated weights 
+
+.small[
+```r
+weight &lt;- dat$weight
+truncweight &lt;- replace(weight, weight &gt; 15, 15)
+# causal risk difference
+glm.obj &lt;- glm(died ~ treatment, weights = truncweight, 
+               family = binomial(link = "identity"), 
+               data = dat)
+
+# truncated weights use ipw package
+weightmodel &lt;- ipwpoint(exposure = treatment, family = "binomial",
+                        link = "logit", 
+                        denominator = ~ age + female + meanbp1 + ARF +
+                          CHF + Cirr + colcan + Coma + lungcan + MOSF + 
+                          sepsis + aps, data = dat, 
+*                       trunc = 0.01)
+
+```
+]
+
+---
+class: middle
+
+## Truncate by percentile
+
+.small[
+
+]
+
+.small[
+
+```r
+summary(weightmodel$weights.trun)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    1.08    1.37    1.68    1.97    2.24    6.34
+```
+]
+
+
+.small[
+
+```r
+# get risk difference
+dat$wt &lt;- weightmodel$weights.trun
+svyglm.obj &lt;- (svyglm(died ~ treatment, 
+                      design = svydesign(~ 1, weights = ~wt, data = dat)))
+coef(svyglm.obj)
+```
+
+```
+## (Intercept)   treatment 
+##    0.640382    0.031196
+```
+
+```r
+confint(svyglm.obj)
+```
+
+```
+##                 2.5 %   97.5 %
+## (Intercept) 0.6239219 0.656842
+## treatment   0.0040138 0.058379
+```
+]
+
+---
+class: inverse, bottom
+background-image: url("./fig/truncatedWeights.png")
+background-position: 50% 50%
+background-size: contain
+
+
+.small[
+
+]
+
+
+---
+class: inverse, center, middle
+
+# Test for unobserved covariates
+
+---
+class: middle
+
+## Example 1 (Correct model)
+
+.small[
+
+```r
+psmodel &lt;- glm(treatment ~ age + female + meanbp1 + ARF + 
+                 CHF + Cirr + colcan + Coma + lungcan + 
+                 MOSF + sepsis + aps, family = binomial(link = "logit"), 
+               data = dat)
+
+ps &lt;- predict(psmodel, type = "response")
+
+dat["residuals"] &lt;- residuals.glm(psmodel)
+
+dat &lt;- dat %&gt;%
+  mutate(id_num = 1:n())
+
+m.out &lt;- MatchIt::matchit(treatment ~ age + female + meanbp1 + ARF + 
+                 CHF + Cirr + colcan + Coma + lungcan + 
+                 MOSF + sepsis + aps, data = dat, 
+                 method = "nearest", distance = "logit", caliper = 0.2)
+```
+]
+
+
+---
+class: middle
+
+## Manipulation
+
+.small[
+
+```r
+a &lt;- data.frame(dat$id_num, m.out$treat, m.out$weights)
+colnames(a) &lt;- c("id_num", "trt", "weights")
+
+# datafile of matches
+b &lt;- as.data.frame(m.out$match.matrix)
+colnames(b) &lt;- c("matched_unit")
+b$matched_unit &lt;- as.numeric(as.character(b$matched_unit))
+b$treated_unit &lt;- as.numeric(rownames(b))
+# now delete matches=na
+c &lt;- b[!is.na(b$matched_unit), ]
+c$match_num &lt;- 1:dim(c)[1]
+
+# attach match number to large datafile
+a[c$matched_unit, 4] &lt;- c$match_num
+a[c$treated_unit, 4] &lt;- c$match_num
+colnames(a)[4] &lt;- "match_num"
+
+final_dat &lt;- dat %&gt;%
+  dplyr::select(-id_num) %&gt;%
+  cbind(a) %&gt;%
+  filter(!(is.na(a$match_num)))
+```
+]
+
+
+---
+class: middle
+
+## Hausman test
+
+.small[
+
+```r
+# Hausman test
+
+final_dat &lt;- final_dat %&gt;%
+  dplyr::mutate(dead = if_else(death == "No", 0, 1))
+
+outcomemodel &lt;- survival::clogit(dead ~ age + female + meanbp1 + ARF +
+  CHF + Cirr + Coma + lungcan +
+  MOSF + sepsis + aps + strata(match_num) + residuals,
+data = final_dat)
+
+covariance &lt;- diag(vcov(outcomemodel))
+covariance &lt;- covariance[length(covariance)]
+
+coefficient &lt;- coef(outcomemodel)[length(coef(outcomemodel))]
+
+z_stat &lt;- coefficient / sqrt(covariance)
+p_values &lt;- pchisq(z_stat^2, 1, lower.tail = FALSE)
+names(p_values)=NULL
+cat(paste0("P value: ",round(p_values,digit=4)))
+```
+]
+
+.small[
+```
+# P value: 0.8558
+```
+]
+
+???
+We cannot reject the null hypothesis, and hence we cannot invalidate the absence of confounders.
+
+
+---
+class: middle 
+
+## Example 2 (Residual confounders - Extreme example)
+
+.small[
+
+
+```r
+#Propensity score
+psmodel &lt;- glm(treatment ~ age,
+                  family = binomial(link = "logit"),
+                  data = dat)
+
+ps &lt;- predict(psmodel, type = "response")
+
+dat["residuals"] &lt;- residuals.glm(psmodel)
+
+dat &lt;- dat %&gt;%
+  mutate(id_num = 1:n())
+
+m.out &lt;- MatchIt::matchit(treatment ~ age,
+data = dat, method = "nearest", distance = "logit", caliper = 0.2
+)
+```
+]
+
+
+---
+class: middle
+
+## Manipulation
+
+.small[
+
+```r
+a &lt;- data.frame(dat$id_num, m.out$treat, m.out$weights)
+colnames(a) &lt;- c("id_num", "trt", "weights")
+
+# datafile of matches
+b &lt;- as.data.frame(m.out$match.matrix)
+colnames(b) &lt;- c("matched_unit")
+b$matched_unit &lt;- as.numeric(as.character(b$matched_unit))
+b$treated_unit &lt;- as.numeric(rownames(b))
+# now delete matches=na
+c &lt;- b[!is.na(b$matched_unit), ]
+c$match_num &lt;- 1:dim(c)[1]
+
+# attach match number to large datafile
+a[c$matched_unit, 4] &lt;- c$match_num
+a[c$treated_unit, 4] &lt;- c$match_num
+colnames(a)[4] &lt;- "match_num"
+
+final_dat &lt;- dat %&gt;%
+  dplyr::select(-id_num) %&gt;%
+  cbind(a) %&gt;%
+  filter(!(is.na(a$match_num)))
+```
+]
+
+---
+class: middle
+
+## Hausman test
+
+.small[
+
+```r
+# Hausman test
+library(survival)
+final_dat &lt;- final_dat %&gt;%
+  mutate(dead = ifelse(death == "No", 0, 1))
+
+outcomemodel &lt;- survival::clogit(dead ~ age + strata(match_num) + residuals,
+data = final_dat
+)
+
+covariance &lt;- diag(vcov(outcomemodel))
+covariance &lt;- covariance[length(covariance)]
+
+coefficient &lt;- coef(outcomemodel)[length(coef(outcomemodel))]
+
+z_stat &lt;- coefficient / sqrt(covariance)
+p_values &lt;- pchisq(z_stat^2, 1, lower.tail = FALSE)
+names(p_values)=NULL
+
+cat(paste0("P value: ",formatC(p_values,format="e",digits=2)))
+```
+]
+
+.small[
+```
+# P value: 1.93e-02
+```
+]
+
+
+???
+In this case, we reject the null hypothesis `\(H_0:\delta=0\)`, and conclude about the presence of confounders.
 
 ---
 class: middle 
